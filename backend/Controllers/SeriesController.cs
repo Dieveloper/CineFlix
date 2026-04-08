@@ -47,7 +47,7 @@ public class SeriesController : ControllerBase
     }
 
     // ESTO ES UN ENDPOINT DELETE PARA ELIMINAR UNA SERIE
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public async Task<ActionResult<Serie>> DeleteSerie(int id)
     {
         var serie = await _context.Series.FindAsync(id);
@@ -60,5 +60,34 @@ public class SeriesController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(serie);
     }
+    // ESTO ES UN ENDPOINT PUT PARA EDITAR UNA SERIE
+    
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditSerie(int id, Serie serieActualizada)
+    {
+        if (id != serieActualizada.Id)
+        {
+            return BadRequest("El ID de la serie no coincide.");
+        }
 
+        _context.Entry(serieActualizada).State = EntityState.Modified;
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.Series.Any(s => s.Id == id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return Ok(serieActualizada);
+    }
 }

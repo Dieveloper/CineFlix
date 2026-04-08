@@ -60,4 +60,32 @@ public class PeliculasController : ControllerBase
         return Ok(pelicula);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditPelicula(int id, Pelicula peliculaActualizada)
+    {
+        if (id != peliculaActualizada.Id)
+        {
+            return BadRequest("El ID de la pelicula no coincide.");
+        }
+
+        _context.Entry(peliculaActualizada).State = EntityState.Modified;
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.Series.Any(s => s.Id == id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return Ok(peliculaActualizada);
+    }
 }
