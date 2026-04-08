@@ -1,0 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using backend.Models;
+
+namespace backend.Data;
+
+public class CineContext : DbContext
+{
+    public CineContext(DbContextOptions<CineContext> options) : base(options) { }
+
+    public DbSet<Pelicula> Peliculas => Set<Pelicula>();
+}
