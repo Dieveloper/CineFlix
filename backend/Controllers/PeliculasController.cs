@@ -44,4 +44,20 @@ public class PeliculasController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(pelicula);
     }
+
+    // ESTO ES UN ENDPOINT DELETE PARA ELIMINAR UNA PELÍCULA
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<Pelicula>> DeletePelicula(int id)
+    {
+        var pelicula = await _context.Peliculas.FindAsync(id);
+
+        if(pelicula == null)
+        {
+            return NotFound();
+        }
+        _context.Peliculas.Remove(pelicula);
+        await _context.SaveChangesAsync();
+        return Ok(pelicula);
+    }
+
 }

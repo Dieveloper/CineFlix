@@ -45,4 +45,20 @@ public class SeriesController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(serie);
     }
+
+    // ESTO ES UN ENDPOINT DELETE PARA ELIMINAR UNA SERIE
+    [HttpDelete]
+    public async Task<ActionResult<Serie>> DeleteSerie(int id)
+    {
+        var serie = await _context.Series.FindAsync(id);
+
+        if(serie == null )
+        {
+            return NotFound();
+        }
+        _context.Series.Remove(serie);
+        await _context.SaveChangesAsync();
+        return Ok(serie);
+    }
+
 }
