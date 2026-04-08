@@ -8,4 +8,5 @@ public class CineContext : DbContext
     public CineContext(DbContextOptions<CineContext> options) : base(options) { }
 
     public DbSet<Pelicula> Peliculas => Set<Pelicula>();
+    public DbSet<Serie> Series => Set<Serie>();
 }

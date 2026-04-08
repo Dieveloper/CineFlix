@@ -15,15 +15,28 @@ public class PeliculasController : ControllerBase
     {
         _context = context;
     }
+    
+    // Esto es un ENDPOINT GET para obtener una película específica
+    [HttpGet("{id}")]
+ 
+    public async Task<ActionResult<Pelicula>> GetPelicula(int id)
+    {
+        var pelicula = await _context.Peliculas.FindAsync(id);
+        if (pelicula == null)
+        {
+            return NotFound();
+        }
+        return Ok(pelicula);
+    }
 
-    // GET: api/Peliculas
+    // Esto es un ENDPOINT GET para obtener todas las películas
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Pelicula>>> GetPeliculas()
     {
         return await _context.Peliculas.ToListAsync();
     }
 
-    // POST: api/Peliculas
+    // ESTO ES UN ENDPOINT POST PARA AGREGAR UNA NUEVA PELÍCULA
     [HttpPost]
     public async Task<ActionResult<Pelicula>> PostPelicula(Pelicula pelicula)
     {
