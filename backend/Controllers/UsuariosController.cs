@@ -18,15 +18,28 @@ public class UsuariosController : ControllerBase
 
 
     // ESTO ES UN ENDPOINT POST PARA AGREGAR UNA NUEVO USUARIO
-    [HttpPost]
-    public async Task<ActionResult<Usuarios>> PostUsuario(Usuarios usuario)
+    [HttpPost("register")]
+public async Task<ActionResult<Usuarios>> Register(registerRequest datos)
+{
+    var existe = await _context.Usuarios.AnyAsync(u => u.email == datos.email);
+    if (existe)
     {
-        _context.Usuarios.Add(usuario); 
-
-        await _context.SaveChangesAsync();  
-
-        return Ok(usuario);
+        return BadRequest("El email ya está registrado.");
     }
+
+    var nuevoUsuario = new Usuarios
+    {
+        Nombre = datos.Nombre,
+        email = datos.email,
+        Password = datos.Password
+        
+    };
+
+    _context.Usuarios.Add(nuevoUsuario);
+    await _context.SaveChangesAsync();
+
+    return Ok(nuevoUsuario);
+}
 
 
     // ESTO ES UN ENDPOINT GET PARA LISTAR A LOS USUARIOS
@@ -35,7 +48,30 @@ public class UsuariosController : ControllerBase
     {
         return await _context.Usuarios.ToListAsync();
     }
+    
+    // ESTO ES UN ENDPOINT POST PARA INICIAR SESION
+    [HttpPost("login")]
+    public async Task<ActionResult> Login([FromBody] LoginRequest loginData)
+    {
+        
+        var usuario = await _context.Usuarios
+            .Include(u => u.Perfiles) 
+            .FirstOrDefaultAsync(u => u.email == loginData.Email);
 
+        
+        if (usuario == null || usuario.Password != loginData.Password)
+        {
+            return Unauthorized("Credenciales incorrectas");
+        }
+
+        
+        return Ok(new { 
+            mensaje = "Login exitoso", 
+            id = usuario.Id,
+            nombre = usuario.Nombre,
+            perfiles = usuario.Perfiles
+        });
+    }
 
    
 

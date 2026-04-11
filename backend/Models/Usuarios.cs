@@ -10,6 +10,8 @@ public class Usuarios
    public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
 
+    public string email {get; set;} = string.Empty;
+
     public string Password {get; set;} = string.Empty;
     public List<Perfil> Perfiles { get; set; } = new List<Perfil>();
 }
