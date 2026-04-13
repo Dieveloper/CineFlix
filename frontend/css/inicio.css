@@ -1,0 +1,182 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", system-ui, sans-serif;
+    background: #0b1220;
+    color: #f7f8fb;
+    min-height: 100vh;
+}
+
+.inicio-container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    min-height: 100vh;
+}
+
+.hero-panel {
+    background: linear-gradient(135deg, #292f48 0%, #1e2439 100%);
+    padding: 4rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 520px;
+}
+
+.hero-content h1 {
+    margin: 0 0 1rem;
+    font-size: clamp(2.4rem, 3vw, 3.8rem);
+    line-height: 1.05;
+}
+
+.hero-content p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #c6c9d6;
+}
+
+.autenticacion-panel {
+    background: #111826;
+    padding: 3rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.autenticacion-content {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.2);
+}
+
+.autenticacion-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tab {
+    border: none;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #c8ccd9;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.tab.active {
+    background: #4454d1;
+    color: white;
+}
+
+.form-panel {
+    display: none;
+}
+
+.form-panel.active {
+    display: block;
+}
+
+.form-panel h2 {
+    margin-top: 0;
+    margin-bottom: 1.2rem;
+    font-size: 1.6rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+    color: #d1d5db;
+}
+
+input {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #f8f9fb;
+    margin-bottom: 1rem;
+    outline: none;
+}
+
+input:focus {
+    border-color: #6676ff;
+    box-shadow: 0 0 0 4px rgba(102, 118, 255, 0.12);
+}
+
+.boton {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.boton.primary {
+    background: #5f72ff;
+    color: white;
+}
+
+.boton.primary:hover {
+    background: #4d5fdd;
+}
+
+.autenticacion-mensaje {
+    margin-top: 1.25rem;
+    padding: 1rem 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cad3ff;
+    min-height: 3rem;
+}
+
+.autenticacion-mensaje.error {
+    background: rgba(255, 82, 82, 0.12);
+    border-color: rgba(255, 82, 82, 0.25);
+    color: #ffdddd;
+}
+
+.autenticacion-mensaje.success {
+    background: rgba(118, 255, 140, 0.12);
+    border-color: rgba(118, 255, 140, 0.25);
+    color: #e7ffdb;
+}
+
+@media (max-width: 900px) {
+    .inicio-container {
+        grid-template-columns: 1fr;
+    }
+    .hero-panel {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+    }
+    .autenticacion-panel {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 560px) {
+    .autenticacion-content {
+        padding: 1.5rem;
+    }
+    .hero-content h1 {
+        font-size: 2.4rem;
+    }
+}
