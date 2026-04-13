@@ -47,7 +47,18 @@
                         <label for="registerPassword">Contraseña</label>
                         <input id="registerPassword" type="password" placeholder="••••••••" required />
 
-                        <button type="submit" class="btn primary">Crear cuenta</button>
+                        <div id="passwordFeedback">
+                            <div id="passwordStrengthBar"></div>
+                            <ul>
+                                <li id="checkLength"> Mínimo 8 caracteres</li>
+                                <li id="checkUpper"> Una mayúscula</li>
+                                <li id="checkLower"> Una minúscula</li>
+                                <li id="checkDigit"> Un número</li>
+                                <li id="checkSpecial"> Un carácter especial</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="boton primary">Crear cuenta</button>
                     </form>
                 </div>
 
