@@ -28,12 +28,21 @@ namespace backend.Controllers
 
         // 2. Crear un nuevo perfil
         [HttpPost]
-        public async Task<ActionResult<Perfil>> PostPerfil(Perfil perfil)
+        public async Task<ActionResult<Perfil>> PostPerfil(CrearPerfilDto dto)
         {
-            // Cambiado a _context.Perfil
-            _context.Perfil.Add(perfil);
+            // Creamos el objeto real de la base de datos a partir del DTO
+            var nuevoPerfil = new Perfil
+            {
+                Nombre = dto.Nombre,
+                UsuarioId = dto.UsuarioId,
+                FotoUrl = null // Al principio no tiene foto
+            };
+
+            _context.Perfil.Add(nuevoPerfil);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetPerfiles), new { usuarioId = perfil.UsuarioId }, perfil);
+
+            // Importante: Devolvemos el perfil creado
+            return CreatedAtAction(nameof(GetPerfiles), new { usuarioId = nuevoPerfil.UsuarioId }, nuevoPerfil);
         }
 
         // 3. CAMBIAR O SUBIR FOTO DEL PERFIL
@@ -98,4 +107,10 @@ namespace backend.Controllers
         public int PerfilId { get; set; }
         public IFormFile Archivo { get; set; } = null!;
     }
+
+    public class CrearPerfilDto
+{
+    public string Nombre { get; set; } = string.Empty;
+    public int UsuarioId { get; set; }
+}
 }
