@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineFlix - Iniciar sesión / Registrarse</title>
+    <link rel="stylesheet" href="css/inicio.css" />
+</head>
+<body>
+    <main class="inicio-container">
+        <section class="hero-panel">
+            <div class="hero-content">
+                <h1>Bienvenido a CineFlix</h1>
+                <p>Tu plataforma de películas y series. Regístrate o inicia sesión para empezar a disfrutar.</p>
+            </div>
+        </section>
+
+        <section class="autenticacion-panel">
+            <div class="autenticacion-content">
+                <div class="autenticacion-tabs">
+                    <button id="loginTab" class="tab active">Iniciar sesión</button>
+                    <button id="registerTab" class="tab">Registrarse</button>
+                </div>
+
+                <div id="loginForm" class="form-panel activo">
+                    <h2>Inicia sesión</h2>
+                    <form>
+                        <label for="loginEmail">Correo electrónico</label>
+                        <input id="loginEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
+
+                        <label for="loginPassword">Contraseña</label>
+                        <input id="loginPassword" type="password" placeholder="••••••••" required />
+
+                        <button type="submit" class="boton primary">Entrar</button>
+                    </form>
+                </div>
+
+                <div id="registerForm" class="form-panel">
+                    <h2>Regístrate</h2>
+                    <form>
+                        <label for="registerName">Nombre completo</label>
+                        <input id="registerName" type="text" placeholder="Tu nombre" required />
+
+                        <label for="registerEmail">Correo electrónico</label>
+                        <input id="registerEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
+
+                        <label for="registerPassword">Contraseña</label>
+                        <input id="registerPassword" type="password" placeholder="••••••••" required />
+
+                        <div id="passwordFeedback">
+                            <div id="passwordStrengthBar"></div>
+                            <ul>
+                                <li id="checkLength"> Mínimo 8 caracteres</li>
+                                <li id="checkUpper"> Una mayúscula</li>
+                                <li id="checkLower"> Una minúscula</li>
+                                <li id="checkDigit"> Un número</li>
+                                <li id="checkSpecial"> Un carácter especial</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="boton primary">Crear cuenta</button>
+                    </form>
+                </div>
+
+                <div id="mensajeAutenticacion" class="autenticacion-mensaje"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/inicio.js"></script>
+</body>
+</html>
