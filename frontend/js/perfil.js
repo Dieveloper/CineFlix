@@ -1,12 +1,7 @@
-/**
- * Módulo para gestionar perfiles de usuario
- */
-
 const API_BASE_URL = "http://localhost:5097/api/perfiles";
 
 let perfilesCache = [];
 
-// Cargar perfiles del usuario
 async function cargarPerfiles() {
     const usuario = obtenerUsuario();
     if (!usuario) return;
@@ -26,7 +21,6 @@ async function cargarPerfiles() {
     }
 }
 
-// Mostrar perfiles en la interfaz
 function mostrarPerfiles(perfiles) {
     const container = document.getElementById("perfiles-grid");
     container.innerHTML = "";
@@ -53,7 +47,6 @@ function mostrarPerfiles(perfiles) {
         container.appendChild(perfilDiv);
     });
 
-    // Agregar tarjeta para crear nuevo perfil
     const crearDiv = document.createElement("div");
     crearDiv.className = "perfil-card crear-perfil";
     crearDiv.innerHTML = `
@@ -67,7 +60,6 @@ function mostrarPerfiles(perfiles) {
     container.appendChild(crearDiv);
 }
 
-// Crear nuevo perfil
 async function crearPerfil(nombre, foto = null) {
     const usuario = obtenerUsuario();
     if (!usuario) return;
@@ -101,7 +93,6 @@ async function crearPerfil(nombre, foto = null) {
     }
 }
 
-// Actualizar perfil
 async function actualizarPerfil(id, nombre, foto) {
     try {
         const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -130,7 +121,6 @@ async function actualizarPerfil(id, nombre, foto) {
     }
 }
 
-// Eliminar perfil
 async function eliminarPerfil(id) {
     if (!confirm("¿Deseas eliminar este perfil?")) return;
 
@@ -152,16 +142,12 @@ async function eliminarPerfil(id) {
     }
 }
 
-// Seleccionar perfil
 function seleccionarPerfil(id, nombre) {
     localStorage.setItem("perfil_id", id);
     localStorage.setItem("perfil_nombre", nombre);
     alert(`Perfil "${nombre}" seleccionado.`);
-    // Aquí puedes redirigir a la página principal del contenido
-    // window.location.href = "peliculas.html";
 }
 
-// Modal para crear perfil
 function abrirModalCrear() {
     const modal = document.getElementById("modalPerfil");
     const modalTitle = document.getElementById("crear");
@@ -183,7 +169,6 @@ function abrirModalCrear() {
     modal.style.display = "flex";
 }
 
-// Modal para editar perfil
 function abrirModalEditar(id, nombre) {
     const modal = document.getElementById("modalPerfil");
     const modalTitle = document.getElementById("crear");
@@ -207,13 +192,11 @@ function abrirModalEditar(id, nombre) {
     modal.style.display = "flex";
 }
 
-// Cerrar modal
 function cerrarModal() {
     const modal = document.getElementById("modalPerfil");
     modal.style.display = "none";
 }
 
-// Manejar foto en el modal
 document.addEventListener("DOMContentLoaded", () => {
     const inputFoto = document.getElementById("fotoPerfil");
     if (inputFoto) {
@@ -222,7 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    // Guardar la imagen como base64
                     inputFoto.value = event.target.result;
                     const preview = document.getElementById("previewFoto");
                     if (preview) {
@@ -235,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Cerrar modal al hacer clic fuera
 window.addEventListener("click", (e) => {
     const modal = document.getElementById("modalPerfil");
     if (e.target === modal) {

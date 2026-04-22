@@ -1,7 +1,3 @@
-/**
- * Sistema de autenticación para CineFlix
- */
-
 function guardarSesion(usuarioData) {
     localStorage.setItem("usuario_id", usuarioData.id);
     localStorage.setItem("usuario_nombre", usuarioData.nombre);

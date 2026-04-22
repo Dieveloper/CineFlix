@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="../css/perfil.css">
     <script src="../js/autenticacion.js"></script>
     <script>
-        // Verificar autenticación ANTES de cargar el contenido
         if (typeof estaAutenticado === 'function' && !estaAutenticado()) {
             alert("Debes iniciar sesión para acceder a esta página.");
             window.location.href = "../index.html";
@@ -26,12 +25,10 @@
         <section class="perfiles-section">
             <h2>¿Quién está viendo?</h2>
             <div id="perfiles-grid" class="perfiles-grid">
-                <!-- Los perfiles se cargarán aquí -->
             </div>
         </section>
     </main>
 
-    <!-- Modal para crear/editar perfil -->
     <div id="modalPerfil" class="modal">
         <div class="modal-contenido">
             <span class="cerrar" onclick="cerrarModal()">&times;</span>
@@ -57,13 +54,9 @@
     <script src="../js/perfil.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Verificar autenticación
             if (!protegerPagina()) return;
-
-            // Cargar perfiles del usuario
             cargarPerfiles();
 
-            // Botón cerrar sesión
             document.getElementById("btnCerrarSesion").addEventListener("click", () => {
                 if (confirm("¿Deseas cerrar sesión?")) {
                     cerrarSesion();
