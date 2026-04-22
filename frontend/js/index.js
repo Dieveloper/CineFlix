@@ -129,7 +129,20 @@ document.querySelector("#loginForm form").addEventListener("submit", async (even
 
         const result = await response.json();
         displayMessage(`Bienvenido, ${result.nombre || email}.`, "success");
+        
+        // Guardar sesión del usuario usando auth.js
+        guardarSesion({
+            id: result.id,
+            nombre: result.nombre,
+            email: email
+        });
+        
         document.querySelector("#loginForm form").reset();
+        
+        // Redirigir a la página de perfiles después de 500ms
+        setTimeout(() => {
+            window.location.href = "v/inicio.html";
+        }, 500);
     } catch (err) {
         displayMessage("No se pudo conectar con el servidor. Intenta nuevamente.", "error");
         console.error(err);

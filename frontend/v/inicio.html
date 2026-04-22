@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineFlix - Selecciona tu perfil</title>
+    <link rel="stylesheet" href="../css/perfil.css">
+    <script src="../js/autenticacion.js"></script>
+    <script>
+        // Verificar autenticación ANTES de cargar el contenido
+        if (typeof estaAutenticado === 'function' && !estaAutenticado()) {
+            alert("Debes iniciar sesión para acceder a esta página.");
+            window.location.href = "../index.html";
+        }
+    </script>
+</head>
+<body class="perfiles-body">
+    <header class="perfiles-header">
+        <div class="header-contenido">
+            <h1 class="logo">CineFlix</h1>
+            <button id="btnCerrarSesion" class="btn-logout">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <main class="container-perfiles">
+        <section class="perfiles-section">
+            <h2>¿Quién está viendo?</h2>
+            <div id="perfiles-grid" class="perfiles-grid">
+                <!-- Los perfiles se cargarán aquí -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para crear/editar perfil -->
+    <div id="modalPerfil" class="modal">
+        <div class="modal-contenido">
+            <span class="cerrar" onclick="cerrarModal()">&times;</span>
+            <h2 id="crear">Crear nuevo perfil</h2>
+            
+            <div class="form-grupo">
+                <label for="nombrePerfil">Nombre del perfil</label>
+                <input type="text" id="nombrePerfil" maxlength="20">
+            </div>
+
+            <div class="form-grupo">
+                <label for="fotoPerfil">Foto de perfil</label>
+                <div id="previewFoto" class="preview-foto"></div>
+                <input type="file" id="fotoPerfil" accept="image/*">
+                <small>Selecciona una imagen para la foto de perfil</small>
+            </div>
+
+            <button id="btnGuardarPerfil" class="btn-guardar">Guardar perfil</button>
+        </div>
+    </div>
+
+    <script src="../js/autenticacion.js"></script>
+    <script src="../js/perfil.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Verificar autenticación
+            if (!protegerPagina()) return;
+
+            // Cargar perfiles del usuario
+            cargarPerfiles();
+
+            // Botón cerrar sesión
+            document.getElementById("btnCerrarSesion").addEventListener("click", () => {
+                if (confirm("¿Deseas cerrar sesión?")) {
+                    cerrarSesion();
+                    window.location.href = "../index.html";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
