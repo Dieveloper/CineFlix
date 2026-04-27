@@ -35,7 +35,7 @@ namespace backend.Controllers
             {
                 Nombre = dto.Nombre,
                 UsuarioId = dto.UsuarioId,
-                FotoUrl = null // Al principio no tiene foto
+                FotoUrl = dto.FotoUrl // Usar la foto proporcionada o null
             };
 
             _context.Perfil.Add(nuevoPerfil);
@@ -100,6 +100,30 @@ namespace backend.Controllers
 
             return NoContent();
         }
+
+        // 5. Actualizar perfil completo (nombre y foto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutPerfil(int id, ActualizarPerfilDto dto)
+        {
+            var perfil = await _context.Perfil.FindAsync(id);
+            if (perfil == null) return NotFound("El perfil no existe.");
+
+            // Actualizar nombre
+            if (!string.IsNullOrEmpty(dto.Nombre))
+            {
+                perfil.Nombre = dto.Nombre;
+            }
+
+            // Actualizar foto si se proporciona una nueva
+            if (!string.IsNullOrEmpty(dto.FotoUrl))
+            {
+                perfil.FotoUrl = dto.FotoUrl;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(perfil);
+        }
     }
 
     public class CambioFotoDto
@@ -109,8 +133,15 @@ namespace backend.Controllers
     }
 
     public class CrearPerfilDto
-{
-    public string Nombre { get; set; } = string.Empty;
-    public int UsuarioId { get; set; }
-}
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public int UsuarioId { get; set; }
+        public string? FotoUrl { get; set; }
+    }
+
+    public class ActualizarPerfilDto
+    {
+        public string? Nombre { get; set; }
+        public string? FotoUrl { get; set; }
+    }
 }

@@ -13,4 +13,6 @@ public class Perfil
     
     [ForeignKey("UsuarioId")]
     public Usuarios? Usuario { get; set; }
+    
+    public string? FotoUrl { get; set; }
 }

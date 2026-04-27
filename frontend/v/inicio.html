@@ -3,67 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineFlix - Selecciona tu perfil</title>
-    <link rel="stylesheet" href="../css/perfil.css">
-    <script src="../js/autenticacion.js"></script>
-    <script>
-        if (typeof estaAutenticado === 'function' && !estaAutenticado()) {
-            alert("Debes iniciar sesión para acceder a esta página.");
-            window.location.href = "../index.html";
-        }
-    </script>
+    <title>CineFlix</title>
+    <link rel="stylesheet" href="../css/inicio.css">
 </head>
-<body class="perfiles-body">
-    <header class="perfiles-header">
-        <div class="header-contenido">
-            <h1 class="logo">CineFlix</h1>
-            <button id="btnCerrarSesion" class="btn-logout">Cerrar sesión</button>
+<body>
+        <div class="hero">
+            <div class="hero-badge">★ DESTACADO HOY</div>
+            <div class="hero-title">DARK ODYSSEY</div>
+            <div class="hero-desc">Un agente secreto descubre que la realidad que conoce no es más que una simulación. 2024 · Acción · Sci-Fi</div>
+            <div class="hero-btns">
+                <button class="btn-play">▶ Reproducir</button>
+                <button class="btn-info">ⓘ Más info</button>
+            </div>
         </div>
-    </header>
 
-    <main class="container-perfiles">
-        <section class="perfiles-section">
-            <h2>¿Quién está viendo?</h2>
-            <div id="perfiles-grid" class="perfiles-grid">
+        <div class="catalog">
+            <div class="row">
+                <div class="row-title">Tendencias ahora <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-trending"></div>
             </div>
-        </section>
-    </main>
-
-    <div id="modalPerfil" class="modal">
-        <div class="modal-contenido">
-            <span class="cerrar" onclick="cerrarModal()">&times;</span>
-            <h2 id="crear">Crear nuevo perfil</h2>
-            
-            <div class="form-grupo">
-                <label for="nombrePerfil">Nombre del perfil</label>
-                <input type="text" id="nombrePerfil" maxlength="20">
+            <div class="row">
+                <div class="row-title">Series populares <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-series"></div>
             </div>
-
-            <div class="form-grupo">
-                <label for="fotoPerfil">Foto de perfil</label>
-                <div id="previewFoto" class="preview-foto"></div>
-                <input type="file" id="fotoPerfil" accept="image/*">
-                <small>Selecciona una imagen para la foto de perfil</small>
+            <div class="row">
+                <div class="row-title">Películas de acción <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-action"></div>
             </div>
-
-            <button id="btnGuardarPerfil" class="btn-guardar">Guardar perfil</button>
+            <div class="row">
+                <div class="row-title">Documentales <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-docs"></div>
+            </div>
         </div>
     </div>
 
-    <script src="../js/autenticacion.js"></script>
-    <script src="../js/perfil.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (!protegerPagina()) return;
-            cargarPerfiles();
+    <!-- MODAL GESTIONAR PERFILES -->
+    <div id="modal-gestionar-perfiles" class="modal-perfiles">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gestionar Perfiles</h3>
+                <button class="modal-close" onclick="cerrarGestionarPerfiles()">&times;</button>
+            </div>
+            <div id="lista-perfiles-modal"></div>
+            <button class="crear-perfil-btn" onclick="mostrarFormCrearPerfil()">+ Añadir nuevo perfil</button>
+            <div id="form-crear-perfil" class="form-crear-perfil">
+                <input type="text" id="nuevo-perfil-nombre" placeholder="Nombre del perfil" />
+                <button class="btn-crear" onclick="crearNuevoPerfil()">Crear</button>
+                <button class="btn-cancelar" onclick="ocultarFormCrearPerfil()">Cancelar</button>
+            </div>
+        </div>
+    </div>
 
-            document.getElementById("btnCerrarSesion").addEventListener("click", () => {
-                if (confirm("¿Deseas cerrar sesión?")) {
-                    cerrarSesion();
-                    window.location.href = "../index.html";
-                }
-            });
-        });
-    </script>
+    <script src="../js/inicio.js"></script>
 </body>
 </html>

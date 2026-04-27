@@ -1,71 +1,191 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CineFlix - Iniciar sesión / Registrarse</title>
-    <link rel="stylesheet" href="css/index.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineFlix</title>
+    <link rel="stylesheet" href="css/inicio.css">
 </head>
 <body>
-    <main class="inicio-container">
-        <section class="hero-panel">
-            <div class="hero-content">
-                <h1>Bienvenido a CineFlix</h1>
-                <p>Tu plataforma de películas y series. Regístrate o inicia sesión para empezar a disfrutar.</p>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="hero-panel">
+                <div class="hero-content">
+                    <h1>CINEFLIX</h1>
+                    <p>Tu plataforma de películas y series. Regístrate o inicia sesión para empezar a disfrutar.</p>
+                </div>
             </div>
-        </section>
-
-        <section class="autenticacion-panel">
-            <div class="autenticacion-content">
-                <div class="autenticacion-tabs">
-                    <button id="loginTab" class="tab active">Iniciar sesión</button>
-                    <button id="registerTab" class="tab">Registrarse</button>
+            <div class="autenticacion-panel">
+                <div class="autenticacion-content">
+                    <div class="autenticacion-tabs">
+                        <button id="loginTab" class="tab active">Iniciar sesión</button>
+                        <button id="registerTab" class="tab">Registrarse</button>
+                    </div>
+                    <div id="loginForm" class="form-panel activo">
+                        <h2>Inicia sesión</h2>
+                        <form>
+                            <label for="loginEmail">Correo electrónico</label>
+                            <input id="loginEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
+                            <label for="loginPassword">Contraseña</label>
+                            <input id="loginPassword" type="password" placeholder="••••••••" required />
+                            <button type="submit" class="boton primary">Entrar</button>
+                        </form>
+                    </div>
+                    <div id="registerForm" class="form-panel">
+                        <h2>Regístrate</h2>
+                        <form>
+                            <label for="registerName">Nombre completo</label>
+                            <input id="registerName" type="text" placeholder="Tu nombre" required />
+                            <label for="registerEmail">Correo electrónico</label>
+                            <input id="registerEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
+                            <label for="registerPassword">Contraseña</label>
+                            <input id="registerPassword" type="password" placeholder="••••••••" required />
+                            <div id="passwordFeedback">
+                                <div id="passwordStrengthBar"></div>
+                                <ul>
+                                    <li id="checkLength"> Mínimo 8 caracteres</li>
+                                    <li id="checkUpper"> Una mayúscula</li>
+                                    <li id="checkLower"> Una minúscula</li>
+                                    <li id="checkDigit"> Un número</li>
+                                    <li id="checkSpecial"> Un carácter especial</li>
+                                </ul>
+                            </div>
+                            <button type="submit" class="boton primary">Crear cuenta</button>
+                        </form>
+                    </div>
+                    <div id="mensajeAutenticacion" class="autenticacion-mensaje"></div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div id="loginForm" class="form-panel activo">
-                    <h2>Inicia sesión</h2>
-                    <form>
-                        <label for="loginEmail">Correo electrónico</label>
-                        <input id="loginEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
+    <!-- PROFILE SCREEN -->
+    <div id="profile-screen" class="screen">
+        <div class="profile-title">¿QUIÉN VE ESTO?</div>
+        <div class="profile-subtitle">ELIGE TU PERFIL</div>
+        <div id="profiles-grid" class="profiles-grid"></div>
+        <button class="btn-gestionar-perfiles" onclick="abrirGestionarPerfiles()">Gestionar perfiles</button>
+    </div>
 
-                        <label for="loginPassword">Contraseña</label>
-                        <input id="loginPassword" type="password" placeholder="••••••••" required />
-
-                        <button type="submit" class="boton primary">Entrar</button>
-                    </form>
+    <!-- CATALOG SCREEN -->
+    <div id="catalog-screen" class="screen">
+        <!-- NAV BAR -->
+        <nav class="nav">
+            <div class="nav-left">
+                <a href="#" class="nav-brand" onclick="navegarA('inicio')">CINEFLIX</a>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" onclick="navegarA('inicio')">Inicio</a>
+                    <a href="#" class="nav-link" onclick="navegarA('peliculas')">Películas</a>
+                    <a href="#" class="nav-link" onclick="navegarA('series')">Series</a>
                 </div>
-
-                <div id="registerForm" class="form-panel">
-                    <h2>Regístrate</h2>
-                    <form>
-                        <label for="registerName">Nombre completo</label>
-                        <input id="registerName" type="text" placeholder="Tu nombre" required />
-
-                        <label for="registerEmail">Correo electrónico</label>
-                        <input id="registerEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
-
-                        <label for="registerPassword">Contraseña</label>
-                        <input id="registerPassword" type="password" placeholder="••••••••" required />
-
-                        <div id="passwordFeedback">
-                            <div id="passwordStrengthBar"></div>
-                            <ul>
-                                <li id="checkLength"> Mínimo 8 caracteres</li>
-                                <li id="checkUpper"> Una mayúscula</li>
-                                <li id="checkLower"> Una minúscula</li>
-                                <li id="checkDigit"> Un número</li>
-                                <li id="checkSpecial"> Un carácter especial</li>
-                            </ul>
+            </div>
+            <div class="nav-right">
+                <button class="nav-search-btn" onclick="toggleSearch()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <div class="nav-profile-dropdown" id="nav-profile-dropdown">
+                    <div class="nav-avatar" id="nav-avatar" onclick="toggleProfileMenu()"></div>
+                    <div class="profile-menu" id="profile-menu">
+                        <div class="menu-header">Seleccionar perfil</div>
+                        <div id="menu-profiles-list"></div>
+                        <div class="menu-divider"></div>
+                        <div class="menu-item" onclick="abrirGestionarPerfiles()">
+                            <span class="menu-icon">⚙️</span> Administrar perfiles
                         </div>
-
-                        <button type="submit" class="boton primary">Crear cuenta</button>
-                    </form>
+                        <div class="menu-item" onclick="verCuenta()">
+                            <span class="menu-icon">👤</span> Cuenta
+                        </div>
+                        <div class="menu-item" onclick="cerrarSesion()">
+                            <span class="menu-icon">🚪</span> Cerrar sesión
+                        </div>
+                    </div>
                 </div>
-
-                <div id="mensajeAutenticacion" class="autenticacion-mensaje"></div>
             </div>
-        </section>
-    </main>
+        </nav>
+
+        <!-- SEARCH MODAL -->
+        <div id="search-modal" class="search-modal">
+            <div class="search-container">
+                <button class="search-close" onclick="toggleSearch()">&times;</button>
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Buscar películas, series, géneros..." oninput="buscarContenido(this.value)" />
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </div>
+        </div>
+
+        <!-- HERO -->
+        <div class="hero">
+            <div class="hero-badge">★ DESTACADO HOY</div>
+            <div class="hero-title">DARK ODYSSEY</div>
+            <div class="hero-desc">Un agente secreto descubre que la realidad que conoce no es más que una simulación. 2024 · Acción · Sci-Fi</div>
+            <div class="hero-btns">
+                <button class="btn-play">▶ Reproducir</button>
+                <button class="btn-info">ⓘ Más info</button>
+            </div>
+        </div>
+
+        <!-- CATALOG -->
+        <div class="catalog">
+            <div class="row">
+                <div class="row-title">Tendencias ahora <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-trending"></div>
+            </div>
+            <div class="row">
+                <div class="row-title">Series populares <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-series"></div>
+            </div>
+            <div class="row">
+                <div class="row-title">Películas de acción <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-action"></div>
+            </div>
+            <div class="row">
+                <div class="row-title">Documentales <span>Ver todo →</span></div>
+                <div class="cards-scroll" id="row-docs"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIONAR PERFILES -->
+    <div id="modal-gestionar-perfiles" class="modal-perfiles">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Gestionar Perfiles</h3>
+                <button class="modal-close" onclick="cerrarGestionarPerfiles()">&times;</button>
+            </div>
+            <div id="lista-perfiles-modal"></div>
+            <button class="crear-perfil-btn" onclick="mostrarFormCrearPerfil()">+ Añadir nuevo perfil</button>
+            <div id="form-crear-perfil" class="form-crear-perfil">
+                <input type="text" id="nuevo-perfil-nombre" placeholder="Nombre del perfil" />
+                <button class="btn-crear" onclick="crearNuevoPerfil()">Crear</button>
+                <button class="btn-cancelar" onclick="ocultarFormCrearPerfil()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR PERFIL -->
+    <div id="modal-crear-perfil" class="modal-perfiles">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Crear Perfil</h3>
+                <button class="modal-close" onclick="cerrarModalCrearPerfil()">&times;</button>
+            </div>
+            <div class="form-crear-perfil-nuevo">
+                <input type="text" id="nuevo-perfil-nombre-modal" placeholder="Nombre del perfil" />
+                <p class="label-foto">Selecciona una imagen de perfil:</p>
+                <div id="imagenes-opciones" class="imagenes-opciones"></div>
+                <button class="btn-crear" onclick="guardarNuevoPerfil()">Crear perfil</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/autenticacion.js"></script>
     <script src="js/index.js"></script>
