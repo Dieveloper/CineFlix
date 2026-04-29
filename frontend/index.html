@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineFlix</title>
-    <link rel="stylesheet" href="css/inicio.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <!-- LOGIN SCREEN -->
@@ -35,20 +35,20 @@
                     <div id="registerForm" class="form-panel">
                         <h2>Regístrate</h2>
                         <form>
-                            <label for="registerName">Nombre completo</label>
-                            <input id="registerName" type="text" placeholder="Tu nombre" required />
-                            <label for="registerEmail">Correo electrónico</label>
-                            <input id="registerEmail" type="email" placeholder="tucorreo@ejemplo.com" required />
-                            <label for="registerPassword">Contraseña</label>
-                            <input id="registerPassword" type="password" placeholder="••••••••" required />
-                            <div id="passwordFeedback">
-                                <div id="passwordStrengthBar"></div>
+                            <label for="nombre-usuario">Nombre completo</label>
+                            <input id="nombre-usuario" type="text" placeholder="Tu nombre" required />
+                            <label for="correo-registro">Correo electrónico</label>
+                            <input id="correo-registro" type="email" placeholder="tucorreo@ejemplo.com" required />
+                            <label for="clave-registro">Contraseña</label>
+                            <input id="clave-registro" type="password" placeholder="••••••••" required />
+                            <div id="retroalimentacion-clave">
+                                <div id="barra-fortaleza"></div>
                                 <ul>
-                                    <li id="checkLength"> Mínimo 8 caracteres</li>
-                                    <li id="checkUpper"> Una mayúscula</li>
-                                    <li id="checkLower"> Una minúscula</li>
-                                    <li id="checkDigit"> Un número</li>
-                                    <li id="checkSpecial"> Un carácter especial</li>
+                                    <li id="verificar-largo"> Mínimo 8 caracteres</li>
+                                    <li id="verificar-mayuscula"> Una mayúscula</li>
+                                    <li id="verificar-minuscula"> Una minúscula</li>
+                                    <li id="verificar-numero"> Un número</li>
+                                    <li id="verificar-especial"> Un carácter especial</li>
                                 </ul>
                             </div>
                             <button type="submit" class="boton primary">Crear cuenta</button>
@@ -60,65 +60,65 @@
         </div>
     </div>
 
-    <!-- PROFILE SCREEN -->
-    <div id="profile-screen" class="screen">
+    <!-- PANTALLA DE PERFILES -->
+    <div id="pantalla-perfiles" class="screen">
         <div class="profile-title">¿QUIÉN VE ESTO?</div>
         <div class="profile-subtitle">ELIGE TU PERFIL</div>
         <div id="profiles-grid" class="profiles-grid"></div>
         <button class="btn-gestionar-perfiles" onclick="abrirGestionarPerfiles()">Gestionar perfiles</button>
     </div>
 
-    <!-- CATALOG SCREEN -->
-    <div id="catalog-screen" class="screen">
-        <!-- NAV BAR -->
-        <nav class="nav">
-            <div class="nav-left">
-                <a href="#" class="nav-brand" onclick="navegarA('inicio')">CINEFLIX</a>
-                <div class="nav-links">
-                    <a href="#" class="nav-link active" onclick="navegarA('inicio')">Inicio</a>
-                    <a href="#" class="nav-link" onclick="navegarA('peliculas')">Películas</a>
-                    <a href="#" class="nav-link" onclick="navegarA('series')">Series</a>
+    <!-- PANTALLA DEL CATÁLOGO -->
+    <div id="pantalla-catalogo" class="screen">
+        <!-- BARRA DE NAVEGACIÓN -->
+        <nav class="navegacion">
+            <div class="nav-lado">
+                <a href="#" class="marca-nav" onclick="navegarA('inicio')">CINEFLIX</a>
+                <div class="enlaces-nav">
+                    <a href="#" class="enlace-nav active" onclick="navegarA('inicio')">Inicio</a>
+                    <a href="#" class="enlace-nav" onclick="navegarA('peliculas')">Películas</a>
+                    <a href="#" class="enlace-nav" onclick="navegarA('series')">Series</a>
                 </div>
             </div>
-            <div class="nav-right">
-                <button class="nav-search-btn" onclick="toggleSearch()">
+            <div class="nav-lado-derecho">
+                <button class="btn-buscar" onclick="toggleSearch()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                 </button>
-                <div class="nav-profile-dropdown" id="nav-profile-dropdown">
-                    <div class="nav-avatar" id="nav-avatar" onclick="toggleProfileMenu()"></div>
-                    <div class="profile-menu" id="profile-menu">
-                        <div class="menu-header">Seleccionar perfil</div>
-                        <div id="menu-profiles-list"></div>
-                        <div class="menu-divider"></div>
-                        <div class="menu-item" onclick="abrirGestionarPerfiles()">
-                            <span class="menu-icon">⚙️</span> Administrar perfiles
+                <div class="desplegable-perfil" id="desplegable-perfil">
+                    <div class="avatar-nav" id="avatar-nav" onclick="toggleProfileMenu()"></div>
+                    <div class="menu-perfil" id="menu-perfil">
+                        <div class="encabezado-menu">Seleccionar perfil</div>
+                        <div id="lista-perfiles-menu"></div>
+                        <div class="divisor-menu"></div>
+                        <div class="opcion-menu" onclick="abrirGestionarPerfiles()">
+                            <span class="icono-menu">⚙️</span> Administrar perfiles
                         </div>
-                        <div class="menu-item" onclick="verCuenta()">
-                            <span class="menu-icon">👤</span> Cuenta
+                        <div class="opcion-menu" onclick="verCuenta()">
+                            <span class="icono-menu">👤</span> Cuenta
                         </div>
-                        <div class="menu-item" onclick="cerrarSesion()">
-                            <span class="menu-icon">🚪</span> Cerrar sesión
+                        <div class="opcion-menu" onclick="cerrarSesion()">
+                            <span class="icono-menu">🚪</span> Cerrar sesión
                         </div>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <!-- SEARCH MODAL -->
-        <div id="search-modal" class="search-modal">
-            <div class="search-container">
-                <button class="search-close" onclick="toggleSearch()">&times;</button>
-                <div class="search-input-wrapper">
-                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <!-- MODAL DE BÚSQUEDA -->
+        <div id="modal-buscar" class="modal-buscar">
+            <div class="contenedor-buscar">
+                <button class="cerrar-buscar" onclick="toggleSearch()">&times;</button>
+                <div class="envoltorio-input">
+                    <svg class="icono-buscar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="search-input" placeholder="Buscar películas, series, géneros..." oninput="buscarContenido(this.value)" />
+                    <input type="text" id="input-buscar" placeholder="Buscar películas, series, géneros..." oninput="buscarContenido(this.value)" />
                 </div>
-                <div id="search-results" class="search-results"></div>
+                <div id="resultados-buscar" class="resultados-buscar"></div>
             </div>
         </div>
 
@@ -133,40 +133,40 @@
             </div>
         </div>
 
-        <!-- CATALOG -->
-        <div class="catalog">
-            <div class="row">
-                <div class="row-title">Tendencias ahora <span>Ver todo →</span></div>
-                <div class="cards-scroll" id="row-trending"></div>
+        <!-- CATÁLOGO -->
+        <div class="catalogo">
+            <div class="fila">
+                <div class="titulo-fila">Tendencias ahora <span>Ver todo →</span></div>
+                <div class="tarjetas-deslizar" id="fila-tendencias"></div>
             </div>
-            <div class="row">
-                <div class="row-title">Series populares <span>Ver todo →</span></div>
-                <div class="cards-scroll" id="row-series"></div>
+            <div class="fila">
+                <div class="titulo-fila">Series populares <span>Ver todo →</span></div>
+                <div class="tarjetas-deslizar" id="fila-series"></div>
             </div>
-            <div class="row">
-                <div class="row-title">Películas de acción <span>Ver todo →</span></div>
-                <div class="cards-scroll" id="row-action"></div>
+            <div class="fila">
+                <div class="titulo-fila">Películas de acción <span>Ver todo →</span></div>
+                <div class="tarjetas-deslizar" id="fila-accion"></div>
             </div>
-            <div class="row">
-                <div class="row-title">Documentales <span>Ver todo →</span></div>
-                <div class="cards-scroll" id="row-docs"></div>
+            <div class="fila">
+                <div class="titulo-fila">Documentales <span>Ver todo →</span></div>
+                <div class="tarjetas-deslizar" id="fila-docs"></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL GESTIONAR PERFILES -->
-    <div id="modal-gestionar-perfiles" class="modal-perfiles">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- MODAL PARA GESTIONAR PERFILES -->
+    <div id="modal-administrar-perfiles" class="modal-perfiles">
+        <div class="contenido-modal">
+            <div class="encabezado-modal">
                 <h3>Gestionar Perfiles</h3>
-                <button class="modal-close" onclick="cerrarGestionarPerfiles()">&times;</button>
+                <button class="cerrar-modal" onclick="cerrarGestionarPerfiles()">&times;</button>
             </div>
             <div id="lista-perfiles-modal"></div>
-            <button class="crear-perfil-btn" onclick="mostrarFormCrearPerfil()">+ Añadir nuevo perfil</button>
-            <div id="form-crear-perfil" class="form-crear-perfil">
-                <input type="text" id="nuevo-perfil-nombre" placeholder="Nombre del perfil" />
-                <button class="btn-crear" onclick="crearNuevoPerfil()">Crear</button>
-                <button class="btn-cancelar" onclick="ocultarFormCrearPerfil()">Cancelar</button>
+            <button class="btn-crear-perfil" onclick="mostrarFormCrearPerfil()">+ Añadir nuevo perfil</button>
+            <div id="formulario-nuevo-perfil" class="formulario-nuevo-perfil">
+                <input type="text" id="nombre-nuevo-perfil" placeholder="Nombre del perfil" />
+                <button class="btn-guardar" onclick="crearNuevoPerfil()">Crear</button>
+                <button class="btn-anular" onclick="ocultarFormCrearPerfil()">Cancelar</button>
             </div>
         </div>
     </div>
@@ -176,13 +176,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Crear Perfil</h3>
-                <button class="modal-close" onclick="cerrarModalCrearPerfil()">&times;</button>
+                <button class="cerrar-modal" onclick="cerrarModalCrearPerfil()">&times;</button>
             </div>
-            <div class="form-crear-perfil-nuevo">
-                <input type="text" id="nuevo-perfil-nombre-modal" placeholder="Nombre del perfil" />
-                <p class="label-foto">Selecciona una imagen de perfil:</p>
-                <div id="imagenes-opciones" class="imagenes-opciones"></div>
-                <button class="btn-crear" onclick="guardarNuevoPerfil()">Crear perfil</button>
+            <div class="form-nuevo-perfil">
+                <input type="text" id="nombre-perfil-modal" placeholder="Nombre del perfil" />
+                <p class="etiqueta-foto">Selecciona una imagen de perfil:</p>
+                <div id="opciones-imagen" class="opciones-imagen"></div>
+                <button class="btn-guardar" onclick="almacenarNuevoPerfil()">Crear perfil</button>
             </div>
         </div>
     </div>

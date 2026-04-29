@@ -22,25 +22,25 @@ async function cargarPerfiles() {
 }
 
 function mostrarPerfiles(perfiles) {
-    const container = document.getElementById("perfiles-grid");
+    const container = document.getElementById("grilla-perfiles");
     container.innerHTML = "";
 
     perfiles.forEach(perfil => {
         const perfilDiv = document.createElement("div");
-        perfilDiv.className = "perfil-card";
+        perfilDiv.className = "tarjeta-perfil";
         perfilDiv.innerHTML = `
-            <div class="perfil-imagen-container">
-                <div class="perfil-imagen" style="${perfil.Foto ? `background-image: url(${perfil.Foto})` : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)`}">
+            <div class="contenedor-foto-perfil">
+                <div class="foto-perfil" style="${perfil.Foto ? `background-image: url(${perfil.Foto})` : `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)`}">
                 </div>
-                <div class="perfil-opciones">
-                    <button class="btn-editar" onclick="abrirModalEditar(${perfil.Id}, '${perfil.Nombre}')">✎</button>
-                    <button class="btn-eliminar" onclick="eliminarPerfil(${perfil.Id})">✕</button>
+                <div class="opciones-perfil">
+                    <button class="btn-editar-perfil" onclick="abrirModalEditar(${perfil.Id}, '${perfil.Nombre}')">✎</button>
+                    <button class="btn-eliminar-perfil" onclick="eliminarPerfil(${perfil.Id})">✕</button>
                 </div>
             </div>
-            <p class="perfil-nombre">${perfil.Nombre}</p>
+            <p class="nombre-perfil">${perfil.Nombre}</p>
         `;
         perfilDiv.addEventListener("click", (e) => {
-            if (!e.target.closest(".perfil-opciones")) {
+            if (!e.target.closest(".opciones-perfil")) {
                 seleccionarPerfil(perfil.Id, perfil.Nombre);
             }
         });
@@ -48,10 +48,10 @@ function mostrarPerfiles(perfiles) {
     });
 
     const crearDiv = document.createElement("div");
-    crearDiv.className = "perfil-card crear-perfil";
+    crearDiv.className = "tarjeta-perfil crear-perfil";
     crearDiv.innerHTML = `
-        <div class="perfil-imagen-container">
-            <div class="perfil-imagen">
+        <div class="contenedor-foto-perfil">
+            <div class="foto-perfil">
                 <span>+ Crear Perfil</span>
             </div>
         </div>

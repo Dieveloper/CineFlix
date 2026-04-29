@@ -59,34 +59,34 @@ const DATA = {
 let perfilesCache = [];
 
 // Elementos del DOM
-const loginTab = document.getElementById("loginTab");
-const registerTab = document.getElementById("registerTab");
-const loginFormPanel = document.getElementById("loginForm");
-const registerFormPanel = document.getElementById("registerForm");
-const mensajeAutenticacion = document.getElementById("mensajeAutenticacion");
+const pestanaIngresar = document.getElementById("loginTab");
+const pestanaRegistrar = document.getElementById("registerTab");
+const formularioIngreso = document.getElementById("loginForm");
+const formularioRegistro = document.getElementById("registerForm");
+const mensajeAcceso = document.getElementById("mensajeAutenticacion");
 
 const allowedDomains = ["gmail.com", "hotmail.com", "outlook.com", "yahoo.com"];
 
 // ============ AUTH FUNCTIONS ============
 
 function setActiveTab(tab) {
-    loginTab.classList.toggle("active", tab === "login");
-    registerTab.classList.toggle("active", tab === "register");
-    loginFormPanel.classList.toggle("activo", tab === "login");
-    registerFormPanel.classList.toggle("activo", tab === "register");
+    pestanaIngresar.classList.toggle("active", tab === "login");
+    pestanaRegistrar.classList.toggle("active", tab === "register");
+    formularioIngreso.classList.toggle("activo", tab === "login");
+    formularioRegistro.classList.toggle("activo", tab === "register");
     clearMessage();
 }
 
 function displayMessage(message, type = "info") {
-    mensajeAutenticacion.textContent = message;
-    mensajeAutenticacion.classList.remove("error", "success");
-    if (type === "error") mensajeAutenticacion.classList.add("error");
-    if (type === "success") mensajeAutenticacion.classList.add("success");
+    mensajeAcceso.textContent = message;
+    mensajeAcceso.classList.remove("error", "success");
+    if (type === "error") mensajeAcceso.classList.add("error");
+    if (type === "success") mensajeAcceso.classList.add("success");
 }
 
 function clearMessage() {
-    mensajeAutenticacion.textContent = "";
-    mensajeAutenticacion.classList.remove("error", "success");
+    mensajeAcceso.textContent = "";
+    mensajeAcceso.classList.remove("error", "success");
 }
 
 function isValidEmail(email) {
@@ -140,14 +140,14 @@ function updatePasswordFeedback(password) {
         special: /[^A-Za-z0-9]/.test(password)
     };
 
-    document.getElementById("checkLength").className = checks.length ? "valid" : "invalid";
-    document.getElementById("checkUpper").className = checks.upper ? "valid" : "invalid";
-    document.getElementById("checkLower").className = checks.lower ? "valid" : "invalid";
-    document.getElementById("checkDigit").className = checks.digit ? "valid" : "invalid";
-    document.getElementById("checkSpecial").className = checks.special ? "valid" : "invalid";
+    document.getElementById("verificar-largo").className = checks.length ? "valid" : "invalid";
+    document.getElementById("verificar-mayuscula").className = checks.upper ? "valid" : "invalid";
+    document.getElementById("verificar-minuscula").className = checks.lower ? "valid" : "invalid";
+    document.getElementById("verificar-numero").className = checks.digit ? "valid" : "invalid";
+    document.getElementById("verificar-especial").className = checks.special ? "valid" : "invalid";
 
     const score = Object.values(checks).filter(Boolean).length;
-    const bar = document.getElementById("passwordStrengthBar");
+    const bar = document.getElementById("barra-fortaleza");
 
     const width = (score / 5) * 100;
     bar.style.width = width + "%";
@@ -174,14 +174,14 @@ function navegarA(seccion) {
     event.preventDefault();
     // Aquí puedes implementar la navegación a diferentes secciones
     // Por ahora, marcamos el enlace activo
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelectorAll('.enlace-nav').forEach(link => link.classList.remove('active'));
     event.target.classList.add('active');
 }
 
-// ============ PROFILE MENU ============
+// ============ MENÚ DE PERFIL ============
 
 function toggleProfileMenu() {
-    const menu = document.getElementById('profile-menu');
+    const menu = document.getElementById('menu-perfil');
     menu.classList.toggle('active');
     
     // Cargar perfiles en el menú si no están cargados
@@ -192,25 +192,25 @@ function toggleProfileMenu() {
 
 // Cerrar menú al hacer clic fuera
 document.addEventListener('click', (e) => {
-    const dropdown = document.getElementById('nav-profile-dropdown');
-    const menu = document.getElementById('profile-menu');
+    const dropdown = document.getElementById('desplegable-perfil');
+    const menu = document.getElementById('menu-perfil');
     if (!dropdown.contains(e.target) && menu.classList.contains('active')) {
         menu.classList.remove('active');
     }
 });
 
 function cargarPerfilesEnMenu() {
-    const container = document.getElementById('menu-profiles-list');
+    const container = document.getElementById('lista-perfiles-menu');
     container.innerHTML = '';
     
     perfilesCache.forEach(perfil => {
         const fotoPerfil = perfil.fotoUrl ? `${IMAGES_PATH}${perfil.fotoUrl}` : `${IMAGES_PATH}${DEFAULT_IMAGE}`;
         
         const item = document.createElement('div');
-        item.className = 'menu-profile-item';
+        item.className = 'item-perfil-menu';
         item.onclick = () => cambiarPerfil(perfil);
         item.innerHTML = `
-            <div class="menu-profile-avatar" style="background-image: url('${fotoPerfil}');"></div>
+            <div class="avatar-perfil-menu" style="background-image: url('${fotoPerfil}');"></div>
             <span>${perfil.nombre}</span>
         `;
         container.appendChild(item);
@@ -221,26 +221,26 @@ function cambiarPerfil(perfil) {
     localStorage.setItem('perfil_id', perfil.id);
     localStorage.setItem('perfil_nombre', perfil.nombre);
     
-    const navAvatar = document.getElementById('nav-avatar');
+    const avatarNav = document.getElementById('avatar-nav');
     const fotoPerfil = perfil.fotoUrl ? `${IMAGES_PATH}${perfil.fotoUrl}` : `${IMAGES_PATH}${DEFAULT_IMAGE}`;
-    navAvatar.style.backgroundImage = `url('${fotoPerfil}')`;
+    avatarNav.style.backgroundImage = `url('${fotoPerfil}')`;
     
-    document.getElementById('profile-menu').classList.remove('active');
+    document.getElementById('menu-perfil').classList.remove('active');
 }
 
-// ============ SEARCH ============
+// ============ BÚSQUEDA ============
 
 function toggleSearch() {
-    const modal = document.getElementById('search-modal');
+    const modal = document.getElementById('modal-buscar');
     modal.classList.toggle('active');
     
     if (modal.classList.contains('active')) {
-        document.getElementById('search-input').focus();
+        document.getElementById('input-buscar').focus();
     }
 }
 
 function buscarContenido(query) {
-    const resultsContainer = document.getElementById('search-results');
+    const resultsContainer = document.getElementById('resultados-buscar');
     
     if (query.length < 2) {
         resultsContainer.innerHTML = '';
@@ -265,9 +265,9 @@ function buscarContenido(query) {
     }
     
     resultsContainer.innerHTML = resultados.map(item => `
-        <div class="search-result-item">
-            <div class="search-result-icon" style="background: ${item.c};">${item.e}</div>
-            <div class="search-result-info">
+        <div class="item-resultado">
+            <div class="icono-resultado" style="background: ${item.c};">${item.e}</div>
+            <div class="info-resultado">
                 <h4>${item.t}</h4>
                 <p>Ver en catálogo</p>
             </div>
@@ -278,7 +278,7 @@ function buscarContenido(query) {
 // Cerrar search con Escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const searchModal = document.getElementById('search-modal');
+        const searchModal = document.getElementById('modal-buscar');
         if (searchModal.classList.contains('active')) {
             toggleSearch();
         }
@@ -304,7 +304,7 @@ async function cargarPerfilesYMostrar() {
     }
 
     mostrarPerfilesEnPantalla();
-    showScreen('profile-screen');
+    showScreen('pantalla-perfiles');
 }
 
 function mostrarPerfilesEnPantalla() {
@@ -313,24 +313,24 @@ function mostrarPerfilesEnPantalla() {
 
     perfilesCache.forEach((perfil) => {
         const card = document.createElement('div');
-        card.className = 'profile-card';
+        card.className = 'tarjeta-perfil';
         card.onclick = () => seleccionarPerfil(perfil);
         
         const fotoPerfil = perfil.fotoUrl ? `${IMAGES_PATH}${perfil.fotoUrl}` : `${IMAGES_PATH}${DEFAULT_IMAGE}`;
         
         card.innerHTML = `
-            <div class="profile-avatar" style="background-image: url('${fotoPerfil}'); background-size: cover; background-position: center;"></div>
-            <div class="profile-name">${perfil.nombre}</div>
+            <div class="avatar-perfil" style="background-image: url('${fotoPerfil}'); background-size: cover; background-position: center;"></div>
+            <div class="nombre-perfil">${perfil.nombre}</div>
         `;
         container.appendChild(card);
     });
 
     const crearCard = document.createElement('div');
-    crearCard.className = 'profile-card';
+    crearCard.className = 'tarjeta-perfil';
     crearCard.onclick = abrirModalCrearPerfil;
     crearCard.innerHTML = `
-        <div class="add-profile">+</div>
-        <div class="profile-name">Añadir</div>
+        <div class="agregar-perfil">+</div>
+        <div class="nombre-perfil">Añadir</div>
     `;
     container.appendChild(crearCard);
 }
@@ -339,13 +339,13 @@ function seleccionarPerfil(perfil) {
     localStorage.setItem('perfil_id', perfil.id);
     localStorage.setItem('perfil_nombre', perfil.nombre);
     
-    const navAvatar = document.getElementById('nav-avatar');
+    const avatarNav = document.getElementById('avatar-nav');
     const fotoPerfil = perfil.fotoUrl ? `${IMAGES_PATH}${perfil.fotoUrl}` : `${IMAGES_PATH}${DEFAULT_IMAGE}`;
-    navAvatar.style.backgroundImage = `url('${fotoPerfil}')`;
-    navAvatar.style.backgroundSize = 'cover';
-    navAvatar.style.backgroundPosition = 'center';
+    avatarNav.style.backgroundImage = `url('${fotoPerfil}')`;
+    avatarNav.style.backgroundSize = 'cover';
+    avatarNav.style.backgroundPosition = 'center';
     
-    showScreen('catalog-screen');
+    showScreen('pantalla-catalogo');
 }
 
 // ============ MODAL CREAR PERFIL ============
@@ -358,12 +358,12 @@ function abrirModalCrearPerfil() {
     
     imagenSeleccionada = AVAILABLE_IMAGES[0];
     
-    const container = document.getElementById('imagenes-opciones');
+    const container = document.getElementById('opciones-imagen');
     container.innerHTML = '';
     
     AVAILABLE_IMAGES.forEach((img, index) => {
         const div = document.createElement('div');
-        div.className = 'imagen-opcion' + (index === 0 ? ' selected' : '');
+        div.className = 'opcion-imagen' + (index === 0 ? ' selected' : '');
         div.style.backgroundImage = `url('${IMAGES_PATH}${img}')`;
         div.onclick = () => seleccionarImagen(img, div);
         container.appendChild(div);
@@ -372,17 +372,17 @@ function abrirModalCrearPerfil() {
 
 function seleccionarImagen(img, element) {
     imagenSeleccionada = img;
-    document.querySelectorAll('.imagen-opcion').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.opcion-imagen').forEach(el => el.classList.remove('selected'));
     element.classList.add('selected');
 }
 
 function cerrarModalCrearPerfil() {
     document.getElementById('modal-crear-perfil').classList.remove('active');
-    document.getElementById('nuevo-perfil-nombre-modal').value = '';
+    document.getElementById('nombre-perfil-modal').value = '';
 }
 
-async function guardarNuevoPerfil() {
-    const nombre = document.getElementById('nuevo-perfil-nombre-modal').value.trim();
+async function almacenarNuevoPerfil() {
+    const nombre = document.getElementById('nombre-perfil-modal').value.trim();
     if (!nombre) {
         alert('Por favor, ingresa un nombre para el perfil');
         return;
@@ -416,14 +416,14 @@ async function guardarNuevoPerfil() {
 // ============ GESTIONAR PERFILES ============
 
 function abrirGestionarPerfiles() {
-    document.getElementById('profile-menu').classList.remove('active');
-    const modal = document.getElementById('modal-gestionar-perfiles');
+    document.getElementById('menu-perfil').classList.remove('active');
+    const modal = document.getElementById('modal-administrar-perfiles');
     modal.classList.add('active');
     renderizarListaPerfiles();
 }
 
 function cerrarGestionarPerfiles() {
-    document.getElementById('modal-gestionar-perfiles').classList.remove('active');
+    document.getElementById('modal-administrar-perfiles').classList.remove('active');
 }
 
 function renderizarListaPerfiles() {
@@ -469,40 +469,40 @@ function editarPerfil(id) {
     if (!perfil) return;
     
     // Guardar el ID del perfil que se está editando
-    document.getElementById('modal-gestionar-perfiles').dataset.perfilEditando = id;
+    document.getElementById('modal-administrar-perfiles').dataset.perfilEditando = id;
     
     // Abrir modal de edición con los datos del perfil
     const modal = document.getElementById('modal-crear-perfil');
     modal.classList.add('active');
     
     // Llenar el campo de nombre
-    document.getElementById('nuevo-perfil-nombre-modal').value = perfil.nombre;
+    document.getElementById('nombre-perfil-modal').value = perfil.nombre;
     
     // Seleccionar la imagen actual
     imagenSeleccionada = perfil.fotoUrl || DEFAULT_IMAGE;
     
-    const container = document.getElementById('imagenes-opciones');
+    const container = document.getElementById('opciones-imagen');
     container.innerHTML = '';
     
     AVAILABLE_IMAGES.forEach((img, index) => {
         const div = document.createElement('div');
         const isSelected = img === imagenSeleccionada;
-        div.className = 'imagen-opcion' + (isSelected ? ' selected' : '');
+        div.className = 'opcion-imagen' + (isSelected ? ' selected' : '');
         div.style.backgroundImage = `url('${IMAGES_PATH}${img}')`;
         div.onclick = () => seleccionarImagen(img, div);
         container.appendChild(div);
     });
     
     // Cambiar el texto del botón
-    const btnCrear = modal.querySelector('.btn-crear');
+    const btnCrear = modal.querySelector('.btn-guardar');
     btnCrear.textContent = 'Guardar cambios';
     btnCrear.onclick = () => guardarCambiosPerfil(id);
     
     // Añadir botón de cancelar si no existe
-    let btnCancelar = modal.querySelector('.btn-cancelar-editar');
+    let btnCancelar = modal.querySelector('.btn-anular-editar');
     if (!btnCancelar) {
         btnCancelar = document.createElement('button');
-        btnCancelar.className = 'btn-cancelar btn-cancelar-editar';
+        btnCancelar.className = 'btn-anular btn-anular-editar';
         btnCancelar.textContent = 'Cancelar';
         btnCancelar.onclick = () => {
             cerrarModalCrearPerfil();
@@ -515,11 +515,11 @@ function editarPerfil(id) {
 
 function restaurarBotonCrear() {
     const modal = document.getElementById('modal-crear-perfil');
-    const btnCrear = modal.querySelector('.btn-crear');
+    const btnCrear = modal.querySelector('.btn-guardar');
     btnCrear.textContent = 'Crear perfil';
-    btnCrear.onclick = () => guardarNuevoPerfil();
+    btnCrear.onclick = () => almacenarNuevoPerfil();
     
-    const btnCancelar = modal.querySelector('.btn-cancelar-editar');
+    const btnCancelar = modal.querySelector('.btn-anular-editar');
     if (btnCancelar) {
         btnCancelar.style.display = 'none';
     }
@@ -528,7 +528,7 @@ function restaurarBotonCrear() {
 }
 
 async function guardarCambiosPerfil(id) {
-    const nombre = document.getElementById('nuevo-perfil-nombre-modal').value.trim();
+    const nombre = document.getElementById('nombre-perfil-modal').value.trim();
     if (!nombre) {
         alert('Por favor, ingresa un nombre para el perfil');
         return;
@@ -562,7 +562,7 @@ async function guardarCambiosPerfil(id) {
 // ============ CUENTA ============
 
 function verCuenta() {
-    document.getElementById('profile-menu').classList.remove('active');
+    document.getElementById('menu-perfil').classList.remove('active');
     const usuario = obtenerUsuario();
     if (usuario) {
         alert(`Cuenta: ${usuario.nombre}\nEmail: ${usuario.email}`);
@@ -573,10 +573,10 @@ function verCuenta() {
 
 function inicializarCatalog() {
     // Renderizar las filas del catálogo
-    const rowTrending = document.getElementById('row-trending');
-    const rowSeries = document.getElementById('row-series');
-    const rowAction = document.getElementById('row-action');
-    const rowDocs = document.getElementById('row-docs');
+    const rowTrending = document.getElementById('fila-tendencias');
+    const rowSeries = document.getElementById('fila-series');
+    const rowAction = document.getElementById('fila-accion');
+    const rowDocs = document.getElementById('fila-docs');
     
     rowTrending.innerHTML = DATA.trending.map(item => crearCard(item)).join('');
     rowSeries.innerHTML = DATA.series.map(item => crearCard(item)).join('');
@@ -586,9 +586,9 @@ function inicializarCatalog() {
 
 function crearCard(item) {
     return `
-        <div class="card">
-            <div class="card-bg" style="background: ${item.c};">${item.e}</div>
-            <div class="card-overlay">${item.t}</div>
+        <div class="tarjeta">
+            <div class="fondo-tarjeta" style="background: ${item.c};">${item.e}</div>
+            <div class="overlay-tarjeta">${item.t}</div>
         </div>
     `;
 }
@@ -600,17 +600,17 @@ function verificarEstado() {
     if (autenticado && perfilId) {
         // Cargar perfiles y mostrar catálogo
         cargarPerfilesYMostrar().then(() => {
-            showScreen('catalog-screen');
+            showScreen('pantalla-catalogo');
             // Actualizar avatar del nav
-            const navAvatar = document.getElementById('nav-avatar');
+            const avatarNav = document.getElementById('avatar-nav');
             const perfilNombre = localStorage.getItem('perfil_nombre');
             // Buscar la foto del perfil actual
             const perfilActual = perfilesCache.find(p => p.id == perfilId);
             if (perfilActual) {
                 const fotoPerfil = perfilActual.fotoUrl ? `${IMAGES_PATH}${perfilActual.fotoUrl}` : `${IMAGES_PATH}${DEFAULT_IMAGE}`;
-                navAvatar.style.backgroundImage = `url('${fotoPerfil}')`;
-                navAvatar.style.backgroundSize = 'cover';
-                navAvatar.style.backgroundPosition = 'center';
+                avatarNav.style.backgroundImage = `url('${fotoPerfil}')`;
+                avatarNav.style.backgroundSize = 'cover';
+                avatarNav.style.backgroundPosition = 'center';
             }
         });
     } else if (autenticado) {
@@ -621,11 +621,11 @@ function verificarEstado() {
 }
 
 // Event listeners para login/register
-loginTab.addEventListener("click", () => setActiveTab("login"));
-registerTab.addEventListener("click", () => setActiveTab("register"));
+pestanaIngresar.addEventListener("click", () => setActiveTab("login"));
+pestanaRegistrar.addEventListener("click", () => setActiveTab("register"));
 
-const passwordInput = document.getElementById("registerPassword");
-const feedback = document.getElementById("passwordFeedback");
+const passwordInput = document.getElementById("clave-registro");
+const feedback = document.getElementById("retroalimentacion-clave");
 
 if (passwordInput && feedback) {
     passwordInput.addEventListener("input", (e) => {
@@ -675,7 +675,7 @@ document.querySelector("#loginForm form")?.addEventListener("submit", async (eve
             email: email
         });
         
-        document.querySelector("#loginForm form").reset();
+        document.querySelector("#formulario-ingreso form").reset();
         
         setTimeout(() => {
             cargarPerfilesYMostrar();
@@ -689,9 +689,9 @@ document.querySelector("#loginForm form")?.addEventListener("submit", async (eve
 // Register form
 document.querySelector("#registerForm form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const name = document.getElementById("registerName").value.trim();
-    const email = document.getElementById("registerEmail").value.trim();
-    const password = document.getElementById("registerPassword").value;
+    const name = document.getElementById("nombre-usuario").value.trim();
+    const email = document.getElementById("correo-registro").value.trim();
+    const password = document.getElementById("clave-registro").value;
     const error = validateRegistration(name, email, password);
 
     if (error) {
