@@ -43,5 +43,7 @@ export const useAuthStore = defineStore('auth', {
       this.usuario = null
       localStorage.removeItem('usuario')
     }
-  }
+  },
+
+  perfilActivo: JSON.parse(localStorage.getItem('perfilActivo')) || null,
 })
