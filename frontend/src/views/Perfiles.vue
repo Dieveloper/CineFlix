@@ -1,168 +1,99 @@
 <template>
-  <div class="catalogo-pantalla">
+  <div class="perfiles-pantalla">
 
-    <!-- NAVBAR -->
-    <nav class="navegacion" :class="{ scrolled: scrolled }">
-      <div class="nav-lado">
-        <span class="marca-nav">CINEFLIX</span>
-        <div class="enlaces-nav">
-          <a class="enlace-nav" :class="{ active: seccionActiva === 'inicio' }" @click="seccionActiva = 'inicio'">Inicio</a>
-          <a class="enlace-nav" :class="{ active: seccionActiva === 'peliculas' }" @click="seccionActiva = 'peliculas'">Películas</a>
-          <a class="enlace-nav" :class="{ active: seccionActiva === 'series' }" @click="seccionActiva = 'series'">Series</a>
-        </div>
-      </div>
-      <div class="nav-lado-derecho">
-        <!-- BÚSQUEDA -->
-        <button class="btn-buscar" @click="toggleBuscar">
-          <Search :size="20" />
-        </button>
+    <!-- SELECCIÓN DE PERFIL -->
+    <div v-if="!mostrarGestion">
+      <div class="perfiles-titulo">¿QUIÉN VE ESTO?</div>
+      <div class="perfiles-subtitulo">ELIGE TU PERFIL</div>
 
-        <!-- AVATAR PERFIL -->
-        <div class="desplegable-perfil" ref="dropdownRef">
+      <div class="profiles-grid">
+        <!-- Perfiles existentes -->
+        <div
+          v-for="perfil in perfiles"
+          :key="perfil.id"
+          class="tarjeta-perfil"
+          @click="seleccionarPerfil(perfil)"
+        >
           <div
-            class="avatar-nav"
-            :style="{ backgroundImage: `url(${avatarPerfil})` }"
-            @click="toggleMenuPerfil"
+            class="avatar-perfil"
+            :style="{ backgroundImage: `url(${getAvatarUrl(perfil.fotoUrl)})` }"
           ></div>
-          <div class="menu-perfil" :class="{ active: menuPerfilVisible }">
-            <div class="encabezado-menu">{{ auth.perfilActivo?.nombre }}</div>
-            <div class="divisor-menu"></div>
-            <div class="opcion-menu" @click="cerrarSesion">
-              <LogOut :size="16" /> Cerrar sesión
-            </div>
-          </div>
+          <div class="nombre-perfil">{{ perfil.nombre }}</div>
+        </div>
+
+        <!-- Botón añadir perfil -->
+        <div class="tarjeta-perfil" @click="abrirModalCrear">
+          <div class="agregar-perfil">+</div>
+          <div class="nombre-perfil">Añadir perfil</div>
         </div>
       </div>
-    </nav>
 
-    <!-- MODAL BÚSQUEDA -->
-    <div class="modal-buscar" :class="{ active: buscarVisible }" @click.self="toggleBuscar">
-      <div class="contenedor-buscar">
-        <button class="cerrar-buscar" @click="toggleBuscar">
-          <X :size="24" />
-        </button>
-        <div class="envoltorio-input">
-          <Search :size="20" class="icono-buscar" />
-          <input
-            ref="inputBuscar"
-            v-model="queryBuscar"
-            type="text"
-            placeholder="Buscar películas, series..."
-          />
-        </div>
-        <div class="resultados-buscar">
+      <button class="btn-gestionar-perfiles" @click="mostrarGestion = true">
+        Gestionar perfiles
+      </button>
+    </div>
+
+    <!-- GESTIÓN DE PERFILES -->
+    <div v-if="mostrarGestion" class="gestion-perfiles">
+      <div class="gestion-header">
+        <h2>Gestionar perfiles</h2>
+        <button class="btn-volver" @click="mostrarGestion = false">← Volver</button>
+      </div>
+
+      <div class="lista-perfiles-gestion">
+        <div v-for="perfil in perfiles" :key="perfil.id" class="perfil-item">
           <div
-            v-for="item in resultadosBuscar"
-            :key="item.id + item.tipo"
-            class="item-resultado"
-            @click="abrirModal(item)"
-          >
-            <div class="icono-resultado" :style="{ background: colorAleatorio(item.id) }">
-              <Film v-if="item.tipo === 'pelicula'" :size="22" />
-              <Tv v-else :size="22" />
-            </div>
-            <div class="info-resultado">
-              <h4>{{ item.titulo }}</h4>
-              <p>{{ item.tipo === 'pelicula' ? 'Película' : 'Serie' }} · {{ item.anio }}</p>
-            </div>
+            class="perfil-item-avatar"
+            :style="{ backgroundImage: `url(${getAvatarUrl(perfil.fotoUrl)})` }"
+          ></div>
+          <div class="perfil-item-info">
+            <h4>{{ perfil.nombre }}</h4>
           </div>
-          <p v-if="queryBuscar.length >= 2 && resultadosBuscar.length === 0" class="sin-resultados">
-            No se encontraron resultados
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- HERO -->
-    <div class="hero" v-if="heroItem" :style="{ background: colorAleatorio(heroItem.id) }">
-      <div class="hero-badge">★ DESTACADO HOY</div>
-      <div class="hero-title">{{ heroItem.titulo }}</div>
-      <div class="hero-desc">{{ heroItem.sinopsis }} · {{ heroItem.anio }}</div>
-      <div class="hero-btns">
-        <button class="btn-play" @click="abrirModal(heroItem)"><Play :size="18" /> Reproducir</button>
-        <button class="btn-info" @click="abrirModal(heroItem)"><Info :size="18" /> Más info</button>
-      </div>
-    </div>
-    <div class="hero hero-vacio" v-else>
-      <div class="hero-badge">★ CINEFLIX</div>
-      <div class="hero-title">Bienvenido</div>
-      <div class="hero-desc">Pronto habrá contenido disponible.</div>
-    </div>
-
-    <!-- CATÁLOGO -->
-    <div class="catalogo">
-
-      <!-- PELÍCULAS -->
-      <div class="fila" v-if="seccionActiva === 'inicio' || seccionActiva === 'peliculas'">
-        <div class="titulo-fila">
-          Películas
-          <span @click="seccionActiva = 'peliculas'">Ver todo →</span>
-        </div>
-        <div class="tarjetas-deslizar">
-          <div
-            v-for="pelicula in peliculas"
-            :key="pelicula.id"
-            class="tarjeta"
-            @click="abrirModal({ ...pelicula, tipo: 'pelicula' })"
-          >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(pelicula.id) }"><Film :size="40" /></div>
-            <div class="overlay-tarjeta">{{ pelicula.titulo }}</div>
-          </div>
-          <p v-if="peliculas.length === 0" class="fila-vacia">No hay películas disponibles aún.</p>
-        </div>
-      </div>
-
-      <!-- SERIES -->
-      <div class="fila" v-if="seccionActiva === 'inicio' || seccionActiva === 'series'">
-        <div class="titulo-fila">
-          Series
-          <span @click="seccionActiva = 'series'">Ver todo →</span>
-        </div>
-        <div class="tarjetas-deslizar">
-          <div
-            v-for="serie in series"
-            :key="serie.id"
-            class="tarjeta"
-            @click="abrirModal({ ...serie, tipo: 'serie' })"
-          >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(serie.id) }"><Tv :size="40" /></div>
-            <div class="overlay-tarjeta">{{ serie.titulo }}</div>
-          </div>
-          <p v-if="series.length === 0" class="fila-vacia">No hay series disponibles aún.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- MODAL REPRODUCCIÓN / INFO -->
-    <div class="modal-overlay" v-if="modalVisible" @click.self="cerrarModal">
-      <div class="modal-contenido">
-        <button class="cerrar-modal" @click="cerrarModal"><X :size="20" /></button>
-
-        <!-- VÍDEO (cuando esté disponible el campo videoUrl) -->
-        <div class="modal-video" v-if="itemSeleccionado?.videoUrl">
-          <video controls autoplay :src="`http://localhost:5097${itemSeleccionado.videoUrl}`">
-            Tu navegador no soporta el vídeo.
-          </video>
-        </div>
-        <div class="modal-sin-video" v-else :style="{ background: colorAleatorio(itemSeleccionado?.id) }">
-          <Film v-if="itemSeleccionado?.tipo === 'pelicula'" :size="80" />
-          <Tv v-else :size="80" />
-        </div>
-
-        <div class="modal-info">
-          <div class="modal-badge">{{ itemSeleccionado?.tipo === 'pelicula' ? 'Película' : 'Serie' }}</div>
-          <h2>{{ itemSeleccionado?.titulo }}</h2>
-          <div class="modal-meta">
-            <span>{{ itemSeleccionado?.anio }}</span>
-            <span v-if="itemSeleccionado?.director">· Dir. {{ itemSeleccionado?.director }}</span>
-            <span v-if="itemSeleccionado?.creador">· Creado por {{ itemSeleccionado?.creador }}</span>
-          </div>
-          <p class="modal-sinopsis">{{ itemSeleccionado?.sinopsis }}</p>
-          <button class="btn-play-modal" v-if="itemSeleccionado?.videoUrl" @click="reproducir">
-            <Play :size="16" /> Reproducir
+          <button class="btn-eliminar-perfil" @click="eliminarPerfil(perfil.id)" title="Eliminar">
+            🗑️
           </button>
-          <p class="proximamente" v-else>Próximamente disponible</p>
+        </div>
+      </div>
+
+      <button class="btn-crear-perfil" @click="abrirModalCrear">+ Añadir nuevo perfil</button>
+    </div>
+
+    <!-- MODAL CREAR PERFIL -->
+    <div v-if="modalCrearVisible" class="modal-overlay" @click.self="cerrarModalCrear">
+      <div class="modal-contenido">
+        <div class="modal-header">
+          <h3>Crear perfil</h3>
+          <button class="cerrar-modal" @click="cerrarModalCrear">&times;</button>
+        </div>
+
+        <div class="form-nuevo-perfil">
+          <label>Nombre del perfil</label>
+          <input
+            v-model="nuevoNombre"
+            type="text"
+            placeholder="Nombre del perfil"
+            maxlength="20"
+          />
+
+          <p class="etiqueta-foto">Selecciona un avatar:</p>
+          <div class="opciones-imagen">
+            <div
+              v-for="avatar in avatares"
+              :key="avatar"
+              class="opcion-imagen"
+              :class="{ selected: avatarSeleccionado === avatar }"
+              :style="{ backgroundImage: `url(${avatar})` }"
+              @click="avatarSeleccionado = avatar"
+            ></div>
+          </div>
+
+          <button
+            class="btn-guardar"
+            :disabled="!nuevoNombre.trim() || !avatarSeleccionado || creando"
+            @click="crearPerfil"
+          >
+            {{ creando ? 'Creando...' : 'Crear perfil' }}
+          </button>
         </div>
       </div>
     </div>
@@ -171,641 +102,426 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
-import { Search, X, LogOut, Film, Tv, Play, Info } from 'lucide-vue-next'
+
+// Importa los avatares de tu carpeta assets
+import avatar1 from '../assets/avatares/FLOWER_BOY.jpg'
+import avatar2 from '../assets/avatares/KLK.jpg'
+import avatar3 from '../assets/avatares/mecagoenlaputa.jpg'
+import avatar4 from '../assets/avatares/omero.jpg'
+import avatar5 from '../assets/avatares/red.jpg'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-const peliculas = ref([])
-const series = ref([])
-const seccionActiva = ref('inicio')
-const scrolled = ref(false)
-const menuPerfilVisible = ref(false)
-const buscarVisible = ref(false)
-const queryBuscar = ref('')
-const modalVisible = ref(false)
-const itemSeleccionado = ref(null)
-const inputBuscar = ref(null)
-const dropdownRef = ref(null)
+const perfiles = ref([])
+const mostrarGestion = ref(false)
+const modalCrearVisible = ref(false)
+const nuevoNombre = ref('')
+const avatarSeleccionado = ref(null)
+const creando = ref(false)
 
-// Avatar del perfil activo
-const avatarPerfil = computed(() => {
-  const perfil = auth.perfilActivo || JSON.parse(localStorage.getItem('perfilActivo'))
-  if (!perfil?.fotoUrl) return ''
-  if (perfil.fotoUrl.startsWith('/src/') || perfil.fotoUrl.startsWith('data:')) return perfil.fotoUrl
-  return `http://localhost:5097${perfil.fotoUrl}`
-})
+const avatares = [avatar1, avatar2, avatar3, avatar4, avatar5]
 
-// Hero — primera película o serie disponible
-const heroItem = computed(() => {
-  const todo = [
-    ...peliculas.value.map(p => ({ ...p, tipo: 'pelicula' })),
-    ...series.value.map(s => ({ ...s, tipo: 'serie' })),
-  ]
-  return todo.length > 0 ? todo[0] : null
-})
-
-// Búsqueda
-const resultadosBuscar = computed(() => {
-  if (queryBuscar.value.length < 2) return []
-  const q = queryBuscar.value.toLowerCase()
-  const peli = peliculas.value
-    .filter(p => p.titulo.toLowerCase().includes(q))
-    .map(p => ({ ...p, tipo: 'pelicula' }))
-  const ser = series.value
-    .filter(s => s.titulo.toLowerCase().includes(q))
-    .map(s => ({ ...s, tipo: 'serie' }))
-  return [...peli, ...ser]
-})
-
-// Color de fondo basado en el ID
-function colorAleatorio(id) {
-  const colores = [
-    '#0f3460', '#3d0000', '#1a2a1a', '#1a0d2e',
-    '#0a1628', '#002244', '#3d1200', '#1a1a0a',
-    '#0d0d1a', '#0a1a0a', '#1a0d00', '#001a1a',
-  ]
-  return colores[(id || 0) % colores.length]
-}
-
-// Scroll navbar
-function onScroll() {
-  scrolled.value = window.scrollY > 50
-}
-
-// Menú perfil
-function toggleMenuPerfil() {
-  menuPerfilVisible.value = !menuPerfilVisible.value
-}
-
-function cerrarMenuFuera(e) {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
-    menuPerfilVisible.value = false
-  }
-}
-
-// Búsqueda
-async function toggleBuscar() {
-  buscarVisible.value = !buscarVisible.value
-  if (buscarVisible.value) {
-    await nextTick()
-    inputBuscar.value?.focus()
-  } else {
-    queryBuscar.value = ''
-  }
-}
-
-// Modal
-function abrirModal(item) {
-  itemSeleccionado.value = item
-  modalVisible.value = true
-  buscarVisible.value = false
-}
-
-function cerrarModal() {
-  modalVisible.value = false
-  itemSeleccionado.value = null
-}
-
-function reproducir() {
-  // El vídeo ya está en el modal con autoplay
-}
-
-// Cerrar sesión
-function cerrarSesion() {
-  auth.logout()
-  router.push('/login')
-}
-
-// Cargar datos
-async function cargarDatos() {
-  try {
-    const [resPelis, resSeries] = await Promise.all([
-      axios.get('/api/Peliculas'),
-      axios.get('/api/Series'),
-    ])
-    peliculas.value = resPelis.data
-    series.value = resSeries.data
-  } catch (error) {
-    console.error('Error al cargar datos:', error)
-  }
-}
-
-// Escape para cerrar modales
-function onKeydown(e) {
-  if (e.key === 'Escape') {
-    if (modalVisible.value) cerrarModal()
-    if (buscarVisible.value) toggleBuscar()
-  }
-}
-
-onMounted(() => {
+// Carga los perfiles del usuario al entrar
+onMounted(async () => {
   if (!auth.usuario) {
     router.push('/login')
     return
   }
-  cargarDatos()
-  window.addEventListener('scroll', onScroll)
-  window.addEventListener('click', cerrarMenuFuera)
-  window.addEventListener('keydown', onKeydown)
+  await cargarPerfiles()
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-  window.removeEventListener('click', cerrarMenuFuera)
-  window.removeEventListener('keydown', onKeydown)
-})
+async function cargarPerfiles() {
+  try {
+    const res = await axios.get(`/api/Perfiles/usuario/${auth.usuario.id}`)
+    perfiles.value = res.data
+  } catch (error) {
+    console.error('Error al cargar perfiles:', error)
+  }
+}
+
+function getAvatarUrl(fotoUrl) {
+  if (!fotoUrl) return avatar1
+  // Si ya es una URL completa (importada), la devuelve tal cual
+  if (fotoUrl.startsWith('data:') || fotoUrl.startsWith('blob:') || fotoUrl.startsWith('/src/')) return fotoUrl
+  // Si es una ruta del backend
+  return `http://localhost:5097${fotoUrl}`
+}
+
+function seleccionarPerfil(perfil) {
+  // Guarda el perfil activo en el store y navega al catálogo
+  auth.perfilActivo = perfil
+  localStorage.setItem('perfilActivo', JSON.stringify(perfil))
+  router.push('/catalogo')
+}
+
+function abrirModalCrear() {
+  nuevoNombre.value = ''
+  avatarSeleccionado.value = null
+  modalCrearVisible.value = true
+}
+
+function cerrarModalCrear() {
+  modalCrearVisible.value = false
+}
+
+async function crearPerfil() {
+  if (!nuevoNombre.value.trim() || !avatarSeleccionado.value) return
+  creando.value = true
+  try {
+    await axios.post('/api/Perfiles', {
+      nombre: nuevoNombre.value.trim(),
+      usuarioId: auth.usuario.id,
+      fotoUrl: avatarSeleccionado.value,
+    })
+    await cargarPerfiles()
+    cerrarModalCrear()
+  } catch (error) {
+    console.error('Error al crear perfil:', error)
+  } finally {
+    creando.value = false
+  }
+}
+
+async function eliminarPerfil(id) {
+  if (!confirm('¿Seguro que quieres eliminar este perfil?')) return
+  try {
+    await axios.delete(`/api/Perfiles/${id}`)
+    await cargarPerfiles()
+  } catch (error) {
+    console.error('Error al eliminar perfil:', error)
+  }
+}
 </script>
 
 <style scoped>
-.catalogo-pantalla {
-  background: #141414;
-  color: #fff;
+.perfiles-pantalla {
   min-height: 100vh;
-  font-family: sans-serif;
-}
-
-/* NAVBAR */
-.navegacion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 100;
-  transition: background 0.3s;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-  box-sizing: border-box;
-}
-
-.navegacion.scrolled {
   background: #141414;
-}
-
-.nav-lado {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.nav-lado-derecho {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.marca-nav {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #E50914;
-  cursor: pointer;
-  letter-spacing: 2px;
-}
-
-.enlaces-nav {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.enlace-nav {
-  color: #e5e5e5;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: color 0.2s;
-  text-decoration: none;
-}
-
-.enlace-nav:hover,
-.enlace-nav.active {
-  color: white;
-  font-weight: 600;
-}
-
-.btn-buscar {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.desplegable-perfil {
-  position: relative;
-}
-
-.avatar-nav {
-  width: 34px;
-  height: 34px;
-  border-radius: 6px;
-  background: #333;
-  background-size: cover;
-  background-position: center;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.2s;
-}
-
-.avatar-nav:hover {
-  border-color: #fff;
-}
-
-.menu-perfil {
-  display: none;
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  min-width: 200px;
-  padding: 0.5rem 0;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-
-.menu-perfil.active {
-  display: block;
-}
-
-.encabezado-menu {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
   color: #fff;
-  font-weight: 600;
-}
-
-.divisor-menu {
-  height: 1px;
-  background: #333;
-  margin: 0.4rem 0;
-}
-
-.opcion-menu {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-.opcion-menu:hover {
-  background: #333;
-}
-
-/* BÚSQUEDA */
-.modal-buscar {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  z-index: 200;
-  padding: 2rem;
-}
-
-.modal-buscar.active {
-  display: block;
-}
-
-.contenedor-buscar {
-  max-width: 600px;
-  margin: 0 auto;
-  position: relative;
-}
-
-.cerrar-buscar {
-  position: absolute;
-  top: -10px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.envoltorio-input {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #333;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.icono-buscar { color: #999; }
-
-.envoltorio-input input {
-  flex: 1;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.1rem;
-  outline: none;
-  font-family: inherit;
-}
-
-.resultados-buscar {
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.item-resultado {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.item-resultado:hover { background: #333; }
-
-.icono-resultado {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.info-resultado h4 { margin: 0 0 0.25rem; font-size: 1rem; }
-.info-resultado p { margin: 0; font-size: 0.85rem; color: #999; }
-
-.sin-resultados {
-  text-align: center;
-  color: #666;
-  padding: 2rem;
-}
-
-/* HERO */
-.hero {
-  padding: 8rem 2rem 4rem;
-  min-height: 60vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  max-width: 800px;
-  position: relative;
-}
-
-.hero-vacio {
-  background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
-}
-
-.hero-badge {
-  display: inline-block;
-  background: #E50914;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  width: fit-content;
-  margin-bottom: 1rem;
-}
-
-.hero-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: bold;
-  margin: 0 0 1rem;
-  line-height: 1.1;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-}
-
-.hero-desc {
-  font-size: 1rem;
-  color: #ccc;
-  max-width: 500px;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-.hero-btns { display: flex; gap: 1rem; }
-
-.btn-play, .btn-info {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-play { background: white; color: black; }
-.btn-play:hover { background: #e5e5e5; }
-.btn-info { background: rgba(109,109,110,0.7); color: white; }
-.btn-info:hover { background: rgba(109,109,110,0.5); }
-
-/* CATÁLOGO */
-.catalogo { padding: 2rem; }
-
-.fila { margin-bottom: 2.5rem; }
-
-.titulo-fila {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  padding: 2rem;
 }
 
-.titulo-fila span {
-  font-size: 0.9rem;
-  color: #54b9c5;
-  cursor: pointer;
+.perfiles-titulo {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 0.5rem;
 }
 
-.titulo-fila span:hover { text-decoration: underline; }
+.perfiles-subtitulo {
+  text-align: center;
+  font-size: 1rem;
+  color: #999;
+  letter-spacing: 2px;
+  margin-bottom: 2.5rem;
+}
 
-.tarjetas-deslizar {
+/* GRID DE PERFILES */
+.profiles-grid {
   display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-  scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
-.tarjetas-deslizar::-webkit-scrollbar { height: 6px; }
-.tarjetas-deslizar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-
-.tarjeta {
-  flex: 0 0 auto;
-  width: 180px;
-  border-radius: 8px;
-  overflow: hidden;
+.tarjeta-perfil {
+  width: 150px;
+  text-align: center;
   cursor: pointer;
-  transition: transform 0.2s;
 }
 
-.tarjeta:hover { transform: scale(1.05); }
+.tarjeta-perfil:hover .avatar-perfil,
+.tarjeta-perfil:hover .agregar-perfil {
+  border: 3px solid #fff;
+  transform: scale(1.05);
+}
 
-.fondo-tarjeta {
+.avatar-perfil {
   width: 100%;
-  aspect-ratio: 2/3;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  background-color: #333;
+  margin-bottom: 0.75rem;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.agregar-perfil {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-}
-
-.overlay-tarjeta {
-  padding: 0.75rem;
-  background: #1a1a1a;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fila-vacia {
   color: #666;
+  border: 3px dashed #444;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.nombre-perfil {
+  font-size: 0.95rem;
+  color: #ccc;
+}
+
+.btn-gestionar-perfiles {
+  display: block;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid #666;
+  color: #ccc;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 0.9rem;
-  padding: 1rem 0;
+  transition: all 0.2s;
+}
+
+.btn-gestionar-perfiles:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+/* GESTIÓN */
+.gestion-perfiles {
+  width: 100%;
+  max-width: 500px;
+}
+
+.gestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.gestion-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.btn-volver {
+  background: none;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-volver:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.lista-perfiles-gestion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.perfil-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #2a2a2a;
+}
+
+.perfil-item-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  background-color: #444;
+  flex-shrink: 0;
+}
+
+.perfil-item-info {
+  flex: 1;
+}
+
+.perfil-item-info h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.btn-eliminar-perfil {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  padding: 0.4rem;
+}
+
+.btn-eliminar-perfil:hover {
+  opacity: 1;
+}
+
+.btn-crear-perfil {
+  width: 100%;
+  padding: 0.75rem;
+  background: #E50914;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.btn-crear-perfil:hover {
+  background: #ff1f27;
 }
 
 /* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 300;
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  z-index: 100;
 }
 
 .modal-contenido {
   background: #1a1a1a;
   border-radius: 12px;
-  width: 100%;
-  max-width: 700px;
+  padding: 2rem;
+  width: 90%;
+  max-width: 480px;
   max-height: 90vh;
   overflow-y: auto;
-  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .cerrar-modal {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(0,0,0,0.6);
+  background: none;
   border: none;
-  color: white;
+  color: #999;
   font-size: 1.5rem;
   cursor: pointer;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
   line-height: 1;
 }
 
-.cerrar-modal:hover { background: rgba(0,0,0,0.9); }
-
-.modal-video video {
-  width: 100%;
-  border-radius: 12px 12px 0 0;
-  display: block;
-  max-height: 400px;
-  object-fit: cover;
+.cerrar-modal:hover {
+  color: #fff;
 }
 
-.modal-sin-video {
-  width: 100%;
-  height: 250px;
+.form-nuevo-perfil {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 5rem;
-  border-radius: 12px 12px 0 0;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.modal-info {
-  padding: 1.5rem;
+.form-nuevo-perfil label {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 0.25rem;
+  display: block;
 }
 
-.modal-badge {
-  display: inline-block;
+.form-nuevo-perfil input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-nuevo-perfil input:focus {
+  border-color: #666;
+}
+
+.etiqueta-foto {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin: 0;
+}
+
+.opciones-imagen {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.opcion-imagen {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  background-color: #333;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.opcion-imagen:hover {
+  transform: scale(1.05);
+}
+
+.opcion-imagen.selected {
+  border-color: #E50914;
+}
+
+.btn-guardar {
+  padding: 0.75rem;
   background: #E50914;
   color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.modal-info h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.75rem;
-}
-
-.modal-meta {
-  color: #999;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.modal-sinopsis {
-  color: #ccc;
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-}
-
-.btn-play-modal {
-  padding: 0.75rem 2rem;
-  background: white;
-  color: black;
   border: none;
   border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 700;
   cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
   transition: background 0.2s;
 }
 
-.btn-play-modal:hover { background: #e5e5e5; }
-
-.proximamente {
-  color: #666;
-  font-size: 0.9rem;
-  font-style: italic;
+.btn-guardar:hover:not(:disabled) {
+  background: #ff1f27;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .navegacion { padding: 1rem; }
-  .enlaces-nav { gap: 1rem; }
-  .tarjeta { width: 140px; }
-  .hero { padding: 6rem 1rem 2rem; }
-  .catalogo { padding: 1rem; }
+.btn-guardar:disabled {
+  background: #4a0408;
+  color: #555;
+  cursor: not-allowed;
 }
 </style>

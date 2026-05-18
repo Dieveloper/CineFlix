@@ -14,10 +14,7 @@
       <div class="nav-lado-derecho">
         <!-- BÚSQUEDA -->
         <button class="btn-buscar" @click="toggleBuscar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
+          <Search :size="20" />
         </button>
 
         <!-- AVATAR PERFIL -->
@@ -31,7 +28,7 @@
             <div class="encabezado-menu">{{ auth.perfilActivo?.nombre }}</div>
             <div class="divisor-menu"></div>
             <div class="opcion-menu" @click="cerrarSesion">
-              <span class="icono-menu">🚪</span> Cerrar sesión
+              <LogOut :size="16" /> Cerrar sesión
             </div>
           </div>
         </div>
@@ -41,12 +38,11 @@
     <!-- MODAL BÚSQUEDA -->
     <div class="modal-buscar" :class="{ active: buscarVisible }" @click.self="toggleBuscar">
       <div class="contenedor-buscar">
-        <button class="cerrar-buscar" @click="toggleBuscar">&times;</button>
+        <button class="cerrar-buscar" @click="toggleBuscar">
+          <X :size="24" />
+        </button>
         <div class="envoltorio-input">
-          <svg class="icono-buscar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
-          </svg>
+          <Search :size="20" class="icono-buscar" />
           <input
             ref="inputBuscar"
             v-model="queryBuscar"
@@ -61,7 +57,10 @@
             class="item-resultado"
             @click="abrirModal(item)"
           >
-            <div class="icono-resultado" :style="{ background: colorAleatorio(item.id) }">🎬</div>
+            <div class="icono-resultado" :style="{ background: colorAleatorio(item.id) }">
+              <Film v-if="item.tipo === 'pelicula'" :size="22" />
+              <Tv v-else :size="22" />
+            </div>
             <div class="info-resultado">
               <h4>{{ item.titulo }}</h4>
               <p>{{ item.tipo === 'pelicula' ? 'Película' : 'Serie' }} · {{ item.anio }}</p>
@@ -80,8 +79,8 @@
       <div class="hero-title">{{ heroItem.titulo }}</div>
       <div class="hero-desc">{{ heroItem.sinopsis }} · {{ heroItem.anio }}</div>
       <div class="hero-btns">
-        <button class="btn-play" @click="abrirModal(heroItem)">▶ Reproducir</button>
-        <button class="btn-info" @click="abrirModal(heroItem)">ⓘ Más info</button>
+        <button class="btn-play" @click="abrirModal(heroItem)"><Play :size="18" /> Reproducir</button>
+        <button class="btn-info" @click="abrirModal(heroItem)"><Info :size="18" /> Más info</button>
       </div>
     </div>
     <div class="hero hero-vacio" v-else>
@@ -106,7 +105,7 @@
             class="tarjeta"
             @click="abrirModal({ ...pelicula, tipo: 'pelicula' })"
           >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(pelicula.id) }">🎬</div>
+            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(pelicula.id) }"><Film :size="40" /></div>
             <div class="overlay-tarjeta">{{ pelicula.titulo }}</div>
           </div>
           <p v-if="peliculas.length === 0" class="fila-vacia">No hay películas disponibles aún.</p>
@@ -126,7 +125,7 @@
             class="tarjeta"
             @click="abrirModal({ ...serie, tipo: 'serie' })"
           >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(serie.id) }">📺</div>
+            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(serie.id) }"><Tv :size="40" /></div>
             <div class="overlay-tarjeta">{{ serie.titulo }}</div>
           </div>
           <p v-if="series.length === 0" class="fila-vacia">No hay series disponibles aún.</p>
@@ -138,7 +137,7 @@
     <!-- MODAL REPRODUCCIÓN / INFO -->
     <div class="modal-overlay" v-if="modalVisible" @click.self="cerrarModal">
       <div class="modal-contenido">
-        <button class="cerrar-modal" @click="cerrarModal">&times;</button>
+        <button class="cerrar-modal" @click="cerrarModal"><X :size="20" /></button>
 
         <!-- VÍDEO (cuando esté disponible el campo videoUrl) -->
         <div class="modal-video" v-if="itemSeleccionado?.videoUrl">
@@ -147,7 +146,8 @@
           </video>
         </div>
         <div class="modal-sin-video" v-else :style="{ background: colorAleatorio(itemSeleccionado?.id) }">
-          {{ itemSeleccionado?.tipo === 'pelicula' ? '🎬' : '📺' }}
+          <Film v-if="itemSeleccionado?.tipo === 'pelicula'" :size="80" />
+          <Tv v-else :size="80" />
         </div>
 
         <div class="modal-info">
@@ -160,7 +160,7 @@
           </div>
           <p class="modal-sinopsis">{{ itemSeleccionado?.sinopsis }}</p>
           <button class="btn-play-modal" v-if="itemSeleccionado?.videoUrl" @click="reproducir">
-            ▶ Reproducir
+            <Play :size="16" /> Reproducir
           </button>
           <p class="proximamente" v-else>Próximamente disponible</p>
         </div>
@@ -175,6 +175,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
+import { Search, X, LogOut, Film, Tv, Play, Info } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()

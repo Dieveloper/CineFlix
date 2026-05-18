@@ -6,6 +6,7 @@ axios.defaults.baseURL = 'http://localhost:5097'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     usuario: JSON.parse(localStorage.getItem('usuario')) || null,
+    perfilActivo: JSON.parse(localStorage.getItem('perfilActivo')) || null,
   }),
 
   getters: {
@@ -41,9 +42,9 @@ export const useAuthStore = defineStore('auth', {
 
     logout() {
       this.usuario = null
+      this.perfilActivo = null
       localStorage.removeItem('usuario')
+      localStorage.removeItem('perfilActivo')
     }
-  },
-
-  perfilActivo: JSON.parse(localStorage.getItem('perfilActivo')) || null,
+  }
 })
