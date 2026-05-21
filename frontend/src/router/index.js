@@ -2,11 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Perfiles from '../views/Perfiles.vue'
 import Catalogo from '../views/Catalogo.vue'
+import Admin from '../views/Admin.vue'
 
 const routes = [
   { path: '/login', component: Login },
   { path: '/perfiles', component: Perfiles, meta: { requiereAuth: true } },
   { path: '/catalogo', component: Catalogo, meta: { requiereAuth: true } },
+  { path: '/admin', component: Admin, meta: { requiereAuth: true, requiereAdmin: true } },
   { path: '/', redirect: '/login' }
 ]
 
@@ -16,10 +18,12 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const usuario = localStorage.getItem('usuario')
+  const usuario = JSON.parse(localStorage.getItem('usuario'))
 
   if (to.meta.requiereAuth && !usuario) {
     next('/login')
+  } else if (to.meta.requiereAdmin && !usuario?.esAdmin) {
+    next('/catalogo')
   } else if (to.path === '/login' && usuario) {
     next('/perfiles')
   } else {

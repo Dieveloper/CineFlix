@@ -65,12 +65,13 @@ public async Task<ActionResult<Usuarios>> Register(registerRequest datos)
         }
 
         
-        return Ok(new { 
-            mensaje = "Login exitoso", 
-            id = usuario.Id,
-            nombre = usuario.Nombre,
-            perfiles = usuario.Perfiles
-        });
+            return Ok(new { 
+                mensaje = "Login exitoso", 
+                id = usuario.Id,
+                nombre = usuario.Nombre,
+                esAdmin = usuario.EsAdmin,
+                perfiles = usuario.Perfiles
+            });
     }
 
    

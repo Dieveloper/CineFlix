@@ -8,10 +8,14 @@ public class Usuarios
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
    public int Id { get; set; }
+
     public string Nombre { get; set; } = string.Empty;
+
+    public bool EsAdmin { get; set; } = false;
 
     public string email {get; set;} = string.Empty;
 
     public string Password {get; set;} = string.Empty;
     public List<Perfil> Perfiles { get; set; } = new List<Perfil>();
+    
 }

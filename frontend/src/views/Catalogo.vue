@@ -27,6 +27,16 @@
           <div class="menu-perfil" :class="{ active: menuPerfilVisible }">
             <div class="encabezado-menu">{{ auth.perfilActivo?.nombre }}</div>
             <div class="divisor-menu"></div>
+            
+            <div class="opcion-menu" @click="cambiarPerfil">
+              <UserCircle :size="16" /> Cambiar perfil
+            </div>
+
+            <div class="opcion-menu" v-if="auth.usuario?.esAdmin" @click="irAdmin">
+              <Settings :size="16" /> Panel de control
+            </div>
+
+            <div class="divisor-menu"></div>
             <div class="opcion-menu" @click="cerrarSesion">
               <LogOut :size="16" /> Cerrar sesión
             </div>
@@ -74,7 +84,11 @@
     </div>
 
     <!-- HERO -->
-    <div class="hero" v-if="heroItem" :style="{ background: colorAleatorio(heroItem.id) }">
+    <div class="hero" v-if="heroItem"
+      :style="heroItem.imagenUrl
+        ? { backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), #141414), url(http://localhost:5097${heroItem.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+        : { background: colorAleatorio(heroItem.id) }"
+    >
       <div class="hero-badge">★ DESTACADO HOY</div>
       <div class="hero-title">{{ heroItem.titulo }}</div>
       <div class="hero-desc">{{ heroItem.sinopsis }} · {{ heroItem.anio }}</div>
@@ -105,7 +119,14 @@
             class="tarjeta"
             @click="abrirModal({ ...pelicula, tipo: 'pelicula' })"
           >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(pelicula.id) }"><Film :size="40" /></div>
+            <div
+              class="fondo-tarjeta"
+              :style="pelicula.imagenUrl
+                ? { backgroundImage: `url(http://localhost:5097${pelicula.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: colorAleatorio(pelicula.id) }"
+            >
+              <Film v-if="!pelicula.imagenUrl" :size="40" />
+            </div>
             <div class="overlay-tarjeta">{{ pelicula.titulo }}</div>
           </div>
           <p v-if="peliculas.length === 0" class="fila-vacia">No hay películas disponibles aún.</p>
@@ -125,7 +146,14 @@
             class="tarjeta"
             @click="abrirModal({ ...serie, tipo: 'serie' })"
           >
-            <div class="fondo-tarjeta" :style="{ background: colorAleatorio(serie.id) }"><Tv :size="40" /></div>
+            <div
+              class="fondo-tarjeta"
+              :style="serie.imagenUrl
+                ? { backgroundImage: `url(http://localhost:5097${serie.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: colorAleatorio(serie.id) }"
+            >
+              <Tv v-if="!serie.imagenUrl" :size="40" />
+            </div>
             <div class="overlay-tarjeta">{{ serie.titulo }}</div>
           </div>
           <p v-if="series.length === 0" class="fila-vacia">No hay series disponibles aún.</p>
@@ -139,12 +167,14 @@
       <div class="modal-contenido">
         <button class="cerrar-modal" @click="cerrarModal"><X :size="20" /></button>
 
-        <!-- VÍDEO (cuando esté disponible el campo videoUrl) -->
         <div class="modal-video" v-if="itemSeleccionado?.videoUrl">
           <video controls autoplay :src="`http://localhost:5097${itemSeleccionado.videoUrl}`">
             Tu navegador no soporta el vídeo.
           </video>
         </div>
+        <div class="modal-sin-video" v-else-if="itemSeleccionado?.imagenUrl"
+          :style="{ backgroundImage: `url(http://localhost:5097${itemSeleccionado.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
+        ></div>
         <div class="modal-sin-video" v-else :style="{ background: colorAleatorio(itemSeleccionado?.id) }">
           <Film v-if="itemSeleccionado?.tipo === 'pelicula'" :size="80" />
           <Tv v-else :size="80" />
@@ -175,7 +205,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
-import { Search, X, LogOut, Film, Tv, Play, Info } from 'lucide-vue-next'
+import { Search, X, LogOut, Film, Tv, Play, Info, UserCircle, Settings } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -301,6 +331,16 @@ function onKeydown(e) {
     if (modalVisible.value) cerrarModal()
     if (buscarVisible.value) toggleBuscar()
   }
+}
+
+function cambiarPerfil() {
+  menuPerfilVisible.value = false
+  router.push('/perfiles')
+}
+
+function irAdmin() {
+  menuPerfilVisible.value = false
+  router.push('/admin')
 }
 
 onMounted(() => {
