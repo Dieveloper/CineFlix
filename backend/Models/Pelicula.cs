@@ -14,4 +14,5 @@ public class Pelicula
     public int Anio { get; set; }
     public string? VideoUrl { get; set; } = string.Empty;
     public string? ImagernUrl { get; set; } = string.Empty;
+    public string? Genero { get; set; } = string.Empty;
 }

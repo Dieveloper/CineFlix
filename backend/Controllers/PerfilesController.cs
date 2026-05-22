@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
+using System.IO;
 
 namespace backend.Controllers
 {
@@ -20,7 +21,6 @@ namespace backend.Controllers
         [HttpGet("usuario/{usuarioId}")]
         public async Task<ActionResult<IEnumerable<Perfil>>> GetPerfiles(int usuarioId)
         {
-            // Cambiado a _context.Perfil
             return await _context.Perfil
                 .Where(p => p.UsuarioId == usuarioId)
                 .ToListAsync();
@@ -30,18 +30,16 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Perfil>> PostPerfil(CrearPerfilDto dto)
         {
-            // Creamos el objeto real de la base de datos a partir del DTO
             var nuevoPerfil = new Perfil
             {
                 Nombre = dto.Nombre,
                 UsuarioId = dto.UsuarioId,
-                FotoUrl = dto.FotoUrl // Usar la foto proporcionada o null
+                FotoUrl = dto.FotoUrl
             };
 
             _context.Perfil.Add(nuevoPerfil);
             await _context.SaveChangesAsync();
 
-            // Importante: Devolvemos el perfil creado
             return CreatedAtAction(nameof(GetPerfiles), new { usuarioId = nuevoPerfil.UsuarioId }, nuevoPerfil);
         }
 
@@ -49,7 +47,6 @@ namespace backend.Controllers
         [HttpPut("update-photo")]
         public async Task<IActionResult> ActualizarFoto([FromForm] CambioFotoDto dto)
         {
-            // Cambiado a _context.Perfil
             var perfil = await _context.Perfil.FindAsync(dto.PerfilId);
             if (perfil == null) return NotFound("El perfil no existe.");
 
@@ -85,7 +82,6 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePerfil(int id)
         {
-            // Cambiado a _context.Perfil
             var perfil = await _context.Perfil.FindAsync(id);
             if (perfil == null) return NotFound();
 
@@ -108,13 +104,11 @@ namespace backend.Controllers
             var perfil = await _context.Perfil.FindAsync(id);
             if (perfil == null) return NotFound("El perfil no existe.");
 
-            // Actualizar nombre
             if (!string.IsNullOrEmpty(dto.Nombre))
             {
                 perfil.Nombre = dto.Nombre;
             }
 
-            // Actualizar foto si se proporciona una nueva
             if (!string.IsNullOrEmpty(dto.FotoUrl))
             {
                 perfil.FotoUrl = dto.FotoUrl;
@@ -125,6 +119,10 @@ namespace backend.Controllers
             return Ok(perfil);
         }
     }
+
+    // ==========================================
+    // DTOs EXCLUSIVOS DE PERFILES
+    // ==========================================
 
     public class CambioFotoDto
     {
