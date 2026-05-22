@@ -106,9 +106,9 @@ public class PeliculasController : ControllerBase
 
     // ENDPOINT PARA SUBIR LA PORTADA DE UNA PELÍCULA
     [HttpPost("{id}/upload-portada")]
-    public async Task<IActionResult> SubirPortada(int id, [FromForm] IFormFile archivo)
+    public async Task<IActionResult> SubirPortada([FromRoute] int id, [FromForm] SubirArchivoDto dto)
     {
-        if (archivo == null || archivo.Length == 0)
+        if (dto.Archivo == null || dto.Archivo.Length == 0)
         {
             return BadRequest("No se ha enviado ningún archivo válido.");
         }
@@ -133,13 +133,13 @@ public class PeliculasController : ControllerBase
             if (System.IO.File.Exists(viejaRuta)) System.IO.File.Delete(viejaRuta);
         }
 
-        string extension = Path.GetExtension(archivo.FileName);
+        string extension = Path.GetExtension(dto.Archivo.FileName);
         string nombreArchivo = $"{Guid.NewGuid()}{extension}";
         string rutaCompleta = Path.Combine(carpetaDestino, nombreArchivo);
 
         using (var stream = new FileStream(rutaCompleta, FileMode.Create))
         {
-            await archivo.CopyToAsync(stream);
+            await dto.Archivo.CopyToAsync(stream);
         }
 
         string urlPublica = $"/peliculas/portadas/{nombreArchivo}";
@@ -153,9 +153,9 @@ public class PeliculasController : ControllerBase
 
     // ENDPOINT PARA SUBIR EL VÍDEO DE UNA PELÍCULA
     [HttpPost("{id}/upload-video")]
-    public async Task<IActionResult> SubirVideo(int id, [FromForm] IFormFile archivo)
+    public async Task<IActionResult> SubirVideo([FromRoute] int id, [FromForm] SubirArchivoDto dto)
     {
-        if (archivo == null || archivo.Length == 0)
+        if (dto.Archivo == null || dto.Archivo.Length == 0)
         {
             return BadRequest("No se ha enviado ningún archivo válido.");
         }
@@ -180,13 +180,13 @@ public class PeliculasController : ControllerBase
             if (System.IO.File.Exists(viejaRuta)) System.IO.File.Delete(viejaRuta);
         }
 
-        string extension = Path.GetExtension(archivo.FileName);
+        string extension = Path.GetExtension(dto.Archivo.FileName);
         string nombreArchivo = $"{Guid.NewGuid()}{extension}";
         string rutaCompleta = Path.Combine(carpetaDestino, nombreArchivo);
 
         using (var stream = new FileStream(rutaCompleta, FileMode.Create))
         {
-            await archivo.CopyToAsync(stream);
+            await dto.Archivo.CopyToAsync(stream);
         }
 
         string urlPublica = $"/peliculas/videos/{nombreArchivo}";
@@ -197,4 +197,10 @@ public class PeliculasController : ControllerBase
 
         return Ok(new { mensaje = "Vídeo subido con éxito", url = urlPublica });
     }
+}
+
+// DTO local para que Swagger procese correctamente el formulario con archivos
+public class SubirArchivoDto
+{
+    public IFormFile Archivo { get; set; } = null!;
 }
