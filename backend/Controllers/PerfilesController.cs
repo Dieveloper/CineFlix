@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
+using System.IO;
 
 namespace backend.Controllers
 {
@@ -20,7 +21,6 @@ namespace backend.Controllers
         [HttpGet("usuario/{usuarioId}")]
         public async Task<ActionResult<IEnumerable<Perfil>>> GetPerfiles(int usuarioId)
         {
-            // Cambiado a _context.Perfil
             return await _context.Perfil
                 .Where(p => p.UsuarioId == usuarioId)
                 .ToListAsync();
@@ -30,62 +30,23 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Perfil>> PostPerfil(CrearPerfilDto dto)
         {
-            // Creamos el objeto real de la base de datos a partir del DTO
             var nuevoPerfil = new Perfil
             {
                 Nombre = dto.Nombre,
                 UsuarioId = dto.UsuarioId,
-                FotoUrl = dto.FotoUrl // Usar la foto proporcionada o null
+                FotoUrl = dto.FotoUrl
             };
 
             _context.Perfil.Add(nuevoPerfil);
             await _context.SaveChangesAsync();
 
-            // Importante: Devolvemos el perfil creado
             return CreatedAtAction(nameof(GetPerfiles), new { usuarioId = nuevoPerfil.UsuarioId }, nuevoPerfil);
         }
 
-        // 3. CAMBIAR O SUBIR FOTO DEL PERFIL
-        [HttpPut("update-photo")]
-        public async Task<IActionResult> ActualizarFoto([FromForm] CambioFotoDto dto)
-        {
-            // Cambiado a _context.Perfil
-            var perfil = await _context.Perfil.FindAsync(dto.PerfilId);
-            if (perfil == null) return NotFound("El perfil no existe.");
-
-            if (dto.Archivo != null && dto.Archivo.Length > 0)
-            {
-                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/perfiles");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
-                if (!string.IsNullOrEmpty(perfil.FotoUrl))
-                {
-                    string viejaRuta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", perfil.FotoUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(viejaRuta)) System.IO.File.Delete(viejaRuta);
-                }
-
-                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Archivo.FileName)}";
-                string fullPath = Path.Combine(folderPath, fileName);
-
-                using (var stream = new FileStream(fullPath, FileMode.Create))
-                {
-                    await dto.Archivo.CopyToAsync(stream);
-                }
-
-                perfil.FotoUrl = $"/perfiles/{fileName}";
-                await _context.SaveChangesAsync();
-                
-                return Ok(new { url = perfil.FotoUrl });
-            }
-
-            return BadRequest("No se proporcionó ningún archivo.");
-        }
-
-        // 4. Eliminar un perfil y su foto
+        // 3. Eliminar un perfil y su foto
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePerfil(int id)
         {
-            // Cambiado a _context.Perfil
             var perfil = await _context.Perfil.FindAsync(id);
             if (perfil == null) return NotFound();
 
@@ -101,28 +62,59 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        // 5. Actualizar perfil completo (nombre y foto)
+        // 4. Actualizar perfil completo (nombre y foto)
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPerfil(int id, ActualizarPerfilDto dto)
         {
             var perfil = await _context.Perfil.FindAsync(id);
             if (perfil == null) return NotFound("El perfil no existe.");
 
-            // Actualizar nombre
             if (!string.IsNullOrEmpty(dto.Nombre))
-            {
                 perfil.Nombre = dto.Nombre;
-            }
 
-            // Actualizar foto si se proporciona una nueva
             if (!string.IsNullOrEmpty(dto.FotoUrl))
-            {
                 perfil.FotoUrl = dto.FotoUrl;
-            }
 
             await _context.SaveChangesAsync();
 
             return Ok(perfil);
+        }
+
+        // 5. Obtener lista de avatares disponibles
+        [HttpGet("avatares")]
+        public IActionResult GetAvatares()
+        {
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "avatares");
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            var archivos = Directory.GetFiles(folderPath)
+                .Select(f => $"/avatares/{Path.GetFileName(f)}")
+                .ToList();
+
+            return Ok(archivos);
+        }
+
+        // 6. Subir un nuevo avatar
+        [HttpPost("upload-avatar")]
+        public async Task<IActionResult> SubirAvatar([FromForm] SubirAvatarDto dto)
+        {
+            if (dto.Archivo == null || dto.Archivo.Length == 0)
+                return BadRequest("No se proporcionó ningún archivo.");
+
+            string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "avatares");
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+            string fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Archivo.FileName)}";
+            string fullPath = Path.Combine(folderPath, fileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await dto.Archivo.CopyToAsync(stream);
+            }
+
+            return Ok(new { url = $"/avatares/{fileName}" });
         }
     }
 
@@ -143,5 +135,10 @@ namespace backend.Controllers
     {
         public string? Nombre { get; set; }
         public string? FotoUrl { get; set; }
+    }
+
+    public class SubirAvatarDto
+    {
+        public IFormFile Archivo { get; set; } = null!;
     }
 }

@@ -7,7 +7,6 @@
       <div class="perfiles-subtitulo">ELIGE TU PERFIL</div>
 
       <div class="profiles-grid">
-        <!-- Perfiles existentes -->
         <div
           v-for="perfil in perfiles"
           :key="perfil.id"
@@ -21,7 +20,6 @@
           <div class="nombre-perfil">{{ perfil.nombre }}</div>
         </div>
 
-        <!-- Botón añadir perfil -->
         <div class="tarjeta-perfil" @click="abrirModalCrear">
           <div class="agregar-perfil">+</div>
           <div class="nombre-perfil">Añadir perfil</div>
@@ -76,15 +74,21 @@
           />
 
           <p class="etiqueta-foto">Selecciona un avatar:</p>
-          <div class="opciones-imagen">
+
+          <div v-if="cargandoAvatares" class="cargando-avatares">Cargando avatares...</div>
+
+          <div v-else class="opciones-imagen">
             <div
               v-for="avatar in avatares"
               :key="avatar"
               class="opcion-imagen"
               :class="{ selected: avatarSeleccionado === avatar }"
-              :style="{ backgroundImage: `url(${avatar})` }"
+              :style="{ backgroundImage: `url(http://localhost:5097${avatar})` }"
               @click="avatarSeleccionado = avatar"
             ></div>
+            <div v-if="avatares.length === 0" class="sin-avatares">
+              No hay avatares disponibles.
+            </div>
           </div>
 
           <button
@@ -107,32 +111,25 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
 
-// Importa los avatares de tu carpeta assets
-import avatar1 from '../assets/avatares/FLOWER_BOY.jpg'
-import avatar2 from '../assets/avatares/KLK.jpg'
-import avatar3 from '../assets/avatares/mecagoenlaputa.jpg'
-import avatar4 from '../assets/avatares/omero.jpg'
-import avatar5 from '../assets/avatares/red.jpg'
-
 const router = useRouter()
 const auth = useAuthStore()
 
 const perfiles = ref([])
+const avatares = ref([])
 const mostrarGestion = ref(false)
 const modalCrearVisible = ref(false)
 const nuevoNombre = ref('')
 const avatarSeleccionado = ref(null)
 const creando = ref(false)
+const cargandoAvatares = ref(false)
 
-const avatares = [avatar1, avatar2, avatar3, avatar4, avatar5]
-
-// Carga los perfiles del usuario al entrar
 onMounted(async () => {
   if (!auth.usuario) {
     router.push('/login')
     return
   }
   await cargarPerfiles()
+  await cargarAvatares()
 })
 
 async function cargarPerfiles() {
@@ -144,16 +141,25 @@ async function cargarPerfiles() {
   }
 }
 
+async function cargarAvatares() {
+  cargandoAvatares.value = true
+  try {
+    const res = await axios.get('/api/Perfiles/avatares')
+    avatares.value = res.data
+  } catch (error) {
+    console.error('Error al cargar avatares:', error)
+  } finally {
+    cargandoAvatares.value = false
+  }
+}
+
 function getAvatarUrl(fotoUrl) {
-  if (!fotoUrl) return avatar1
-  // Si ya es una URL completa (importada), la devuelve tal cual
-  if (fotoUrl.startsWith('data:') || fotoUrl.startsWith('blob:') || fotoUrl.startsWith('/src/')) return fotoUrl
-  // Si es una ruta del backend
+  if (!fotoUrl) return ''
+  if (fotoUrl.startsWith('http')) return fotoUrl
   return `http://localhost:5097${fotoUrl}`
 }
 
 function seleccionarPerfil(perfil) {
-  // Guarda el perfil activo en el store y navega al catálogo
   auth.perfilActivo = perfil
   localStorage.setItem('perfilActivo', JSON.stringify(perfil))
   router.push('/catalogo')
@@ -227,7 +233,6 @@ async function eliminarPerfil(id) {
   margin-bottom: 2.5rem;
 }
 
-/* GRID DE PERFILES */
 .profiles-grid {
   display: flex;
   justify-content: center;
@@ -275,10 +280,7 @@ async function eliminarPerfil(id) {
   transition: border-color 0.2s, transform 0.2s;
 }
 
-.nombre-perfil {
-  font-size: 0.95rem;
-  color: #ccc;
-}
+.nombre-perfil { font-size: 0.95rem; color: #ccc; }
 
 .btn-gestionar-perfiles {
   display: block;
@@ -293,16 +295,9 @@ async function eliminarPerfil(id) {
   transition: all 0.2s;
 }
 
-.btn-gestionar-perfiles:hover {
-  border-color: #fff;
-  color: #fff;
-}
+.btn-gestionar-perfiles:hover { border-color: #fff; color: #fff; }
 
-/* GESTIÓN */
-.gestion-perfiles {
-  width: 100%;
-  max-width: 500px;
-}
+.gestion-perfiles { width: 100%; max-width: 500px; }
 
 .gestion-header {
   display: flex;
@@ -311,10 +306,7 @@ async function eliminarPerfil(id) {
   margin-bottom: 1.5rem;
 }
 
-.gestion-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-}
+.gestion-header h2 { margin: 0; font-size: 1.5rem; }
 
 .btn-volver {
   background: none;
@@ -327,10 +319,7 @@ async function eliminarPerfil(id) {
   transition: all 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #fff;
-  color: #fff;
-}
+.btn-volver:hover { border-color: #fff; color: #fff; }
 
 .lista-perfiles-gestion {
   display: flex;
@@ -358,14 +347,8 @@ async function eliminarPerfil(id) {
   flex-shrink: 0;
 }
 
-.perfil-item-info {
-  flex: 1;
-}
-
-.perfil-item-info h4 {
-  margin: 0;
-  font-size: 1rem;
-}
+.perfil-item-info { flex: 1; }
+.perfil-item-info h4 { margin: 0; font-size: 1rem; }
 
 .btn-eliminar-perfil {
   background: none;
@@ -377,9 +360,7 @@ async function eliminarPerfil(id) {
   padding: 0.4rem;
 }
 
-.btn-eliminar-perfil:hover {
-  opacity: 1;
-}
+.btn-eliminar-perfil:hover { opacity: 1; }
 
 .btn-crear-perfil {
   width: 100%;
@@ -393,15 +374,12 @@ async function eliminarPerfil(id) {
   transition: background 0.2s;
 }
 
-.btn-crear-perfil:hover {
-  background: #ff1f27;
-}
+.btn-crear-perfil:hover { background: #ff1f27; }
 
-/* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0,0,0,0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -425,10 +403,7 @@ async function eliminarPerfil(id) {
   margin-bottom: 1.5rem;
 }
 
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-}
+.modal-header h3 { margin: 0; font-size: 1.25rem; }
 
 .cerrar-modal {
   background: none;
@@ -439,9 +414,7 @@ async function eliminarPerfil(id) {
   line-height: 1;
 }
 
-.cerrar-modal:hover {
-  color: #fff;
-}
+.cerrar-modal:hover { color: #fff; }
 
 .form-nuevo-perfil {
   display: flex;
@@ -449,12 +422,7 @@ async function eliminarPerfil(id) {
   gap: 1rem;
 }
 
-.form-nuevo-perfil label {
-  font-size: 0.85rem;
-  color: #aaa;
-  margin-bottom: 0.25rem;
-  display: block;
-}
+.form-nuevo-perfil label { font-size: 0.85rem; color: #aaa; display: block; }
 
 .form-nuevo-perfil input {
   width: 100%;
@@ -468,14 +436,22 @@ async function eliminarPerfil(id) {
   font-family: inherit;
 }
 
-.form-nuevo-perfil input:focus {
-  border-color: #666;
+.form-nuevo-perfil input:focus { border-color: #666; }
+
+.etiqueta-foto { font-size: 0.85rem; color: #aaa; margin: 0; }
+
+.cargando-avatares {
+  text-align: center;
+  color: #666;
+  padding: 1rem;
+  font-size: 0.9rem;
 }
 
-.etiqueta-foto {
-  font-size: 0.85rem;
-  color: #aaa;
-  margin: 0;
+.sin-avatares {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 1rem;
 }
 
 .opciones-imagen {
@@ -495,13 +471,8 @@ async function eliminarPerfil(id) {
   transition: border-color 0.2s, transform 0.2s;
 }
 
-.opcion-imagen:hover {
-  transform: scale(1.05);
-}
-
-.opcion-imagen.selected {
-  border-color: #E50914;
-}
+.opcion-imagen:hover { transform: scale(1.05); }
+.opcion-imagen.selected { border-color: #E50914; }
 
 .btn-guardar {
   padding: 0.75rem;
@@ -515,9 +486,7 @@ async function eliminarPerfil(id) {
   transition: background 0.2s;
 }
 
-.btn-guardar:hover:not(:disabled) {
-  background: #ff1f27;
-}
+.btn-guardar:hover:not(:disabled) { background: #ff1f27; }
 
 .btn-guardar:disabled {
   background: #4a0408;

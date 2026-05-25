@@ -12,5 +12,7 @@ public class Serie
     public string Sinopsis { get; set; } = string.Empty;
     public int Anio { get; set; }
     public string? VideoUrl { get; set; } = string.Empty;
-    public string? ImagenUrl { get; set; } = string.Empty;
+    public string? ImagernUrl { get; set; } = string.Empty;
+    public string? Genero { get; set; } = string.Empty;
+
 }

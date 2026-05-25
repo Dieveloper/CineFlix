@@ -11,69 +11,119 @@ public class UsuariosController : ControllerBase
 {
     private readonly CineContext _context;
 
-    public UsuariosController (CineContext context)
+    public UsuariosController(CineContext context)
     {
         _context = context;
     }
 
-
-    // ESTO ES UN ENDPOINT POST PARA AGREGAR UNA NUEVO USUARIO
+    // ENDPOINT POST PARA AGREGAR UN NUEVO USUARIO
     [HttpPost("register")]
-public async Task<ActionResult<Usuarios>> Register(registerRequest datos)
-{
-    var existe = await _context.Usuarios.AnyAsync(u => u.email == datos.email);
-    if (existe)
+    public async Task<ActionResult<Usuarios>> Register(registerRequest datos)
     {
-        return BadRequest("El email ya está registrado.");
+        var existe = await _context.Usuarios.AnyAsync(u => u.email == datos.email);
+        if (existe)
+        {
+            return BadRequest("El email ya está registrado.");
+        }
+
+        var nuevoUsuario = new Usuarios
+        {
+            Nombre = datos.Nombre,
+            email = datos.email,
+            Password = datos.Password
+        };
+
+        _context.Usuarios.Add(nuevoUsuario);
+        await _context.SaveChangesAsync();
+
+        return Ok(nuevoUsuario);
     }
 
-    var nuevoUsuario = new Usuarios
-    {
-        Nombre = datos.Nombre,
-        email = datos.email,
-        Password = datos.Password
-        
-    };
-
-    _context.Usuarios.Add(nuevoUsuario);
-    await _context.SaveChangesAsync();
-
-    return Ok(nuevoUsuario);
-}
-
-
-    // ESTO ES UN ENDPOINT GET PARA LISTAR A LOS USUARIOS
+    // ENDPOINT GET PARA LISTAR A LOS USUARIOS
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
     {
         return await _context.Usuarios.ToListAsync();
     }
-    
-    // ESTO ES UN ENDPOINT POST PARA INICIAR SESION
+
+    // ENDPOINT POST PARA INICIAR SESION
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] LoginRequest loginData)
     {
-        
         var usuario = await _context.Usuarios
-            .Include(u => u.Perfiles) 
+            .Include(u => u.Perfiles)
             .FirstOrDefaultAsync(u => u.email == loginData.Email);
 
-        
         if (usuario == null || usuario.Password != loginData.Password)
         {
             return Unauthorized("Credenciales incorrectas");
         }
 
-        
-            return Ok(new { 
-                mensaje = "Login exitoso", 
-                id = usuario.Id,
-                nombre = usuario.Nombre,
-                esAdmin = usuario.EsAdmin,
-                perfiles = usuario.Perfiles
-            });
+        return Ok(new {
+            mensaje = "Login exitoso",
+            id = usuario.Id,
+            nombre = usuario.Nombre,
+            esAdmin = usuario.EsAdmin,
+            perfiles = usuario.Perfiles
+        });
     }
 
-   
+    // ENDPOINT PUT PARA ACTUALIZAR UN USUARIO (incluye EsAdmin)
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateUsuario(int id, [FromBody] ActualizarUsuarioDto datos)
+    {
+        var usuario = await _context.Usuarios.FindAsync(id);
 
+        if (usuario == null)
+        {
+            return NotFound($"No se encontró ningún usuario con el ID {id}.");
+        }
+
+        var emailDuplicado = await _context.Usuarios.AnyAsync(u => u.email == datos.email && u.Id != id);
+        if (emailDuplicado)
+        {
+            return BadRequest("El email ya está registrado por otro usuario.");
+        }
+
+        usuario.Nombre = datos.Nombre;
+        usuario.email = datos.email;
+        usuario.Password = datos.Password;
+        usuario.EsAdmin = datos.EsAdmin;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return StatusCode(500, "Error de concurrencia al actualizar el usuario.");
+        }
+
+        return Ok(new { mensaje = "Usuario actualizado con éxito", usuario });
+    }
+
+    // ENDPOINT DELETE PARA ELIMINAR UN USUARIO
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteUsuario(int id)
+    {
+        var usuario = await _context.Usuarios.FindAsync(id);
+
+        if (usuario == null)
+        {
+            return NotFound($"No se encontró ningún usuario con el ID {id}.");
+        }
+
+        _context.Usuarios.Remove(usuario);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { mensaje = $"Usuario con ID {id} eliminado correctamente." });
+    }
+}
+
+public class ActualizarUsuarioDto
+{
+    public string Nombre { get; set; } = string.Empty;
+    public string email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public bool EsAdmin { get; set; }
 }

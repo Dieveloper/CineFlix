@@ -10,7 +10,7 @@ public class Perfil
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public int UsuarioId { get; set; } 
-    
+    public bool EsAdmin { get; set; }
     [ForeignKey("UsuarioId")]
     public Usuarios? Usuario { get; set; }
     

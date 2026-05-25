@@ -11,6 +11,9 @@
         <button :class="{ active: seccion === 'usuarios' }" @click="seccion = 'usuarios'">
           <Users :size="18" /> Usuarios
         </button>
+        <button :class="{ active: seccion === 'avatares' }" @click="seccion = 'avatares'">
+          <ImageIcon :size="18" /> Avatares
+        </button>
       </nav>
       <button class="btn-volver" @click="router.push('/catalogo')">
         <ArrowLeft :size="18" /> Volver al catálogo
@@ -20,7 +23,7 @@
     <!-- CONTENIDO -->
     <main class="admin-main">
 
-      <!-- PELÍCULAS -->
+      <!-- ==================== PELÍCULAS ==================== -->
       <div v-if="seccion === 'peliculas'">
         <div class="admin-header">
           <h1>Películas</h1>
@@ -37,6 +40,7 @@
                 <th>Título</th>
                 <th>Director</th>
                 <th>Año</th>
+                <th>Género</th>
                 <th>Vídeo</th>
                 <th>Acciones</th>
               </tr>
@@ -45,8 +49,8 @@
               <tr v-for="pelicula in peliculas" :key="pelicula.id">
                 <td>
                   <img
-                    v-if="pelicula.imagenUrl"
-                    :src="`http://localhost:5097${pelicula.imagenUrl}`"
+                    v-if="pelicula.imagernUrl"
+                    :src="`http://localhost:5097${pelicula.imagernUrl}`"
                     class="portada-mini"
                   />
                   <div v-else class="portada-vacia"><ImageOff :size="20" /></div>
@@ -54,6 +58,7 @@
                 <td>{{ pelicula.titulo }}</td>
                 <td>{{ pelicula.director }}</td>
                 <td>{{ pelicula.anio }}</td>
+                <td>{{ pelicula.genero || '—' }}</td>
                 <td>
                   <span class="badge" :class="pelicula.videoUrl ? 'badge-ok' : 'badge-no'">
                     {{ pelicula.videoUrl ? 'Sí' : 'No' }}
@@ -69,14 +74,14 @@
                 </td>
               </tr>
               <tr v-if="peliculas.length === 0">
-                <td colspan="6" class="vacio">No hay películas todavía.</td>
+                <td colspan="7" class="vacio">No hay películas todavía.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- USUARIOS -->
+      <!-- ==================== USUARIOS ==================== -->
       <div v-if="seccion === 'usuarios'">
         <div class="admin-header">
           <h1>Usuarios</h1>
@@ -125,9 +130,43 @@
         </div>
       </div>
 
+      <!-- ==================== AVATARES ==================== -->
+      <div v-if="seccion === 'avatares'">
+        <div class="admin-header">
+          <h1>Avatares</h1>
+        </div>
+
+        <!-- ZONA DE SUBIDA -->
+        <div
+          class="drop-zone"
+          :class="{ 'drag-over': arrastandoAvatar }"
+          @dragover.prevent="arrastandoAvatar = true"
+          @dragleave="arrastandoAvatar = false"
+          @drop.prevent="onDropAvatar"
+          @click="$refs.inputAvatar.click()"
+        >
+          <Upload :size="32" />
+          <p>Arrastra una imagen aquí o haz clic para seleccionar</p>
+          <small>PNG, JPG, WEBP</small>
+          <input ref="inputAvatar" type="file" accept="image/*" style="display:none" @change="onSelectAvatar" />
+        </div>
+
+        <div v-if="subiendoAvatar" class="subiendo">Subiendo avatar...</div>
+
+        <!-- GRID DE AVATARES -->
+        <div class="avatares-grid">
+          <div v-for="avatar in avatares" :key="avatar" class="avatar-item">
+            <img :src="`http://localhost:5097${avatar}`" />
+          </div>
+          <div v-if="avatares.length === 0" class="vacio-avatares">
+            No hay avatares todavía. Sube el primero.
+          </div>
+        </div>
+      </div>
+
     </main>
 
-    <!-- MODAL PELÍCULA -->
+    <!-- ==================== MODAL PELÍCULA ==================== -->
     <div class="modal-overlay" v-if="modalPeliculaVisible" @click.self="cerrarModalPelicula">
       <div class="modal-contenido">
         <div class="modal-header">
@@ -148,19 +187,64 @@
             <label>Año *</label>
             <input v-model="form.anio" type="number" placeholder="2024" />
           </div>
+          <div class="field">
+            <label>Género</label>
+            <select v-model="form.genero">
+              <option value="">Sin género</option>
+              <option v-for="g in generos" :key="g" :value="g">{{ g }}</option>
+            </select>
+          </div>
           <div class="field field-full">
             <label>Sinopsis</label>
             <textarea v-model="form.sinopsis" rows="3" placeholder="Descripción de la película"></textarea>
           </div>
+
+          <!-- SUBIDA PORTADA -->
           <div class="field field-full">
-            <label>Ruta de portada</label>
-            <input v-model="form.imagenUrl" type="text" placeholder="/peliculas/portadas/portada.webp" />
-            <small>El archivo debe estar en <code>wwwroot/peliculas/portadas/</code></small>
+            <label>Portada</label>
+            <div
+              class="drop-zone-small"
+              :class="{ 'drag-over': arrastandoPortada }"
+              @dragover.prevent="arrastandoPortada = true"
+              @dragleave="arrastandoPortada = false"
+              @drop.prevent="onDropPortada"
+              @click="$refs.inputPortada.click()"
+            >
+              <div v-if="form.imagernUrl" class="preview-portada">
+                <img :src="`http://localhost:5097${form.imagernUrl}`" />
+                <span>{{ form.imagernUrl }}</span>
+              </div>
+              <div v-else class="drop-placeholder">
+                <Upload :size="20" />
+                <span>Arrastra la portada aquí o haz clic</span>
+              </div>
+              <input ref="inputPortada" type="file" accept="image/*" style="display:none" @change="onSelectPortada" />
+            </div>
+            <div v-if="subiendoPortada" class="subiendo">Subiendo portada...</div>
           </div>
+
+          <!-- SUBIDA VÍDEO -->
           <div class="field field-full">
-            <label>Ruta del vídeo</label>
-            <input v-model="form.videoUrl" type="text" placeholder="/peliculas/videos/pelicula.mp4" />
-            <small>El archivo debe estar en <code>wwwroot/peliculas/videos/</code></small>
+            <label>Vídeo</label>
+            <div
+              class="drop-zone-small"
+              :class="{ 'drag-over': arrastandoVideo }"
+              @dragover.prevent="arrastandoVideo = true"
+              @dragleave="arrastandoVideo = false"
+              @drop.prevent="onDropVideo"
+              @click="$refs.inputVideo.click()"
+            >
+              <div v-if="form.videoUrl" class="drop-placeholder ok">
+                <CheckCircle :size="20" />
+                <span>{{ form.videoUrl }}</span>
+              </div>
+              <div v-else class="drop-placeholder">
+                <Upload :size="20" />
+                <span>Arrastra el vídeo aquí o haz clic</span>
+              </div>
+              <input ref="inputVideo" type="file" accept="video/*" style="display:none" @change="onSelectVideo" />
+            </div>
+            <div v-if="subiendoVideo" class="subiendo">Subiendo vídeo... puede tardar unos segundos.</div>
           </div>
         </div>
 
@@ -181,7 +265,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
-import { Film, Users, ArrowLeft, Plus, Pencil, Trash2, X, ImageOff, ShieldCheck, ShieldOff } from 'lucide-vue-next'
+import {
+  Film, Users, ArrowLeft, Plus, Pencil, Trash2, X,
+  ImageOff, ShieldCheck, ShieldOff, Upload, CheckCircle,
+  Image as ImageIcon
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -189,16 +277,35 @@ const auth = useAuthStore()
 const seccion = ref('peliculas')
 const peliculas = ref([])
 const usuarios = ref([])
+const avatares = ref([])
+
 const modalPeliculaVisible = ref(false)
 const peliculaEditando = ref(null)
 const guardando = ref(false)
+
+const subiendoPortada = ref(false)
+const subiendoVideo = ref(false)
+const subiendoAvatar = ref(false)
+const arrastandoPortada = ref(false)
+const arrastandoVideo = ref(false)
+const arrastandoAvatar = ref(false)
+
+const inputPortada = ref(null)
+const inputVideo = ref(null)
+const inputAvatar = ref(null)
+
+const generos = [
+  'Acción', 'Aventura', 'Comedia', 'Drama', 'Terror',
+  'Ciencia Ficción', 'Documental', 'Animación', 'Thriller', 'Corto'
+]
 
 const form = ref({
   titulo: '',
   director: '',
   sinopsis: '',
   anio: new Date().getFullYear(),
-  imagenUrl: '',
+  genero: '',
+  imagernUrl: '',
   videoUrl: '',
 })
 
@@ -209,6 +316,7 @@ onMounted(() => {
   }
   cargarPeliculas()
   cargarUsuarios()
+  cargarAvatares()
 })
 
 async function cargarPeliculas() {
@@ -229,6 +337,17 @@ async function cargarUsuarios() {
   }
 }
 
+async function cargarAvatares() {
+  try {
+    const res = await axios.get('/api/Perfiles/avatares')
+    avatares.value = res.data
+  } catch (error) {
+    console.error('Error al cargar avatares:', error)
+  }
+}
+
+// ---- MODAL PELÍCULA ----
+
 function abrirModalPelicula(pelicula) {
   peliculaEditando.value = pelicula
   if (pelicula) {
@@ -237,17 +356,15 @@ function abrirModalPelicula(pelicula) {
       director: pelicula.director,
       sinopsis: pelicula.sinopsis,
       anio: pelicula.anio,
-      imagenUrl: pelicula.imagenUrl || '',
+      genero: pelicula.genero || '',
+      imagernUrl: pelicula.imagernUrl || '',
       videoUrl: pelicula.videoUrl || '',
     }
   } else {
     form.value = {
-      titulo: '',
-      director: '',
-      sinopsis: '',
+      titulo: '', director: '', sinopsis: '',
       anio: new Date().getFullYear(),
-      imagenUrl: '',
-      videoUrl: '',
+      genero: '', imagernUrl: '', videoUrl: '',
     }
   }
   modalPeliculaVisible.value = true
@@ -262,17 +379,13 @@ async function guardarPelicula() {
   if (!form.value.titulo || !form.value.director || !form.value.anio) return
   guardando.value = true
   try {
+    const datos = { ...form.value, anio: parseInt(form.value.anio) }
     if (peliculaEditando.value) {
       await axios.put(`/api/Peliculas/${peliculaEditando.value.id}`, {
-        id: peliculaEditando.value.id,
-        ...form.value,
-        anio: parseInt(form.value.anio),
+        id: peliculaEditando.value.id, ...datos
       })
     } else {
-      await axios.post('/api/Peliculas', {
-        ...form.value,
-        anio: parseInt(form.value.anio),
-      })
+      await axios.post('/api/Peliculas', datos)
     }
     await cargarPeliculas()
     cerrarModalPelicula()
@@ -293,10 +406,99 @@ async function eliminarPelicula(id) {
   }
 }
 
+// ---- SUBIDA PORTADA ----
+
+async function subirPortada(archivo) {
+  if (!peliculaEditando.value) return
+  subiendoPortada.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    const res = await axios.post(`/api/Peliculas/${peliculaEditando.value.id}/upload-portada`, fd)
+    form.value.imagernUrl = res.data.url
+    await cargarPeliculas()
+  } catch (error) {
+    console.error('Error al subir portada:', error)
+  } finally {
+    subiendoPortada.value = false
+    arrastandoPortada.value = false
+  }
+}
+
+function onDropPortada(e) {
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) subirPortada(archivo)
+}
+
+function onSelectPortada(e) {
+  const archivo = e.target.files[0]
+  if (archivo) subirPortada(archivo)
+}
+
+// ---- SUBIDA VÍDEO ----
+
+async function subirVideo(archivo) {
+  if (!peliculaEditando.value) return
+  subiendoVideo.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    const res = await axios.post(`/api/Peliculas/${peliculaEditando.value.id}/upload-video`, fd)
+    form.value.videoUrl = res.data.url
+    await cargarPeliculas()
+  } catch (error) {
+    console.error('Error al subir vídeo:', error)
+  } finally {
+    subiendoVideo.value = false
+    arrastandoVideo.value = false
+  }
+}
+
+function onDropVideo(e) {
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) subirVideo(archivo)
+}
+
+function onSelectVideo(e) {
+  const archivo = e.target.files[0]
+  if (archivo) subirVideo(archivo)
+}
+
+// ---- SUBIDA AVATAR ----
+
+async function subirAvatar(archivo) {
+  subiendoAvatar.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    await axios.post('/api/Perfiles/upload-avatar', fd)
+    await cargarAvatares()
+  } catch (error) {
+    console.error('Error al subir avatar:', error)
+  } finally {
+    subiendoAvatar.value = false
+    arrastandoAvatar.value = false
+  }
+}
+
+function onDropAvatar(e) {
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) subirAvatar(archivo)
+}
+
+function onSelectAvatar(e) {
+  const archivo = e.target.files[0]
+  if (archivo) subirAvatar(archivo)
+}
+
+// ---- USUARIOS ----
+
 async function toggleAdmin(usuario) {
   try {
     await axios.put(`/api/Usuarios/${usuario.id}`, {
-      ...usuario,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      password: usuario.password,
       esAdmin: !usuario.esAdmin,
     })
     await cargarUsuarios()
@@ -367,15 +569,8 @@ async function eliminarUsuario(id) {
   text-align: left;
 }
 
-.sidebar-nav button:hover {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-}
-
-.sidebar-nav button.active {
-  background: #E50914;
-  color: #fff;
-}
+.sidebar-nav button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.sidebar-nav button.active { background: #E50914; color: #fff; }
 
 .btn-volver {
   display: flex;
@@ -392,17 +587,10 @@ async function eliminarUsuario(id) {
   margin-top: auto;
 }
 
-.btn-volver:hover {
-  border-color: #fff;
-  color: #fff;
-}
+.btn-volver:hover { border-color: #fff; color: #fff; }
 
 /* MAIN */
-.admin-main {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-}
+.admin-main { flex: 1; padding: 2rem; overflow-y: auto; }
 
 .admin-header {
   display: flex;
@@ -411,11 +599,7 @@ async function eliminarUsuario(id) {
   margin-bottom: 1.5rem;
 }
 
-.admin-header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-}
+.admin-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
 
 /* TABLA */
 .tabla-contenedor {
@@ -425,15 +609,8 @@ async function eliminarUsuario(id) {
   overflow: hidden;
 }
 
-.tabla {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.tabla thead {
-  background: #f8f9fa;
-}
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tabla thead { background: #f8f9fa; }
 
 .tabla th {
   padding: 0.85rem 1rem;
@@ -452,20 +629,10 @@ async function eliminarUsuario(id) {
   color: #333;
 }
 
-.tabla tr:last-child td {
-  border-bottom: none;
-}
+.tabla tr:last-child td { border-bottom: none; }
+.tabla tr:hover td { background: #fafafa; }
 
-.tabla tr:hover td {
-  background: #fafafa;
-}
-
-.portada-mini {
-  width: 40px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 4px;
-}
+.portada-mini { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; }
 
 .portada-vacia {
   width: 40px;
@@ -478,27 +645,11 @@ async function eliminarUsuario(id) {
   color: #aaa;
 }
 
-.badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
+.badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+.badge-ok { background: #e6f9f0; color: #1a7a4a; }
+.badge-no { background: #fde8e8; color: #c0392b; }
 
-.badge-ok {
-  background: #e6f9f0;
-  color: #1a7a4a;
-}
-
-.badge-no {
-  background: #fde8e8;
-  color: #c0392b;
-}
-
-.acciones {
-  display: flex;
-  gap: 0.5rem;
-}
+.acciones { display: flex; gap: 0.5rem; }
 
 .btn-icon {
   background: none;
@@ -512,22 +663,10 @@ async function eliminarUsuario(id) {
   transition: all 0.2s;
 }
 
-.btn-icon:hover {
-  background: #f0f0f0;
-  color: #333;
-}
+.btn-icon:hover { background: #f0f0f0; color: #333; }
+.btn-icon.danger:hover { background: #fde8e8; border-color: #e74c3c; color: #e74c3c; }
 
-.btn-icon.danger:hover {
-  background: #fde8e8;
-  border-color: #e74c3c;
-  color: #e74c3c;
-}
-
-.vacio {
-  text-align: center;
-  color: #aaa;
-  padding: 2rem !important;
-}
+.vacio { text-align: center; color: #aaa; padding: 2rem !important; }
 
 /* BOTONES */
 .btn-primary {
@@ -545,14 +684,8 @@ async function eliminarUsuario(id) {
   transition: background 0.2s;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #c0070f;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-primary:hover:not(:disabled) { background: #c0070f; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-secondary {
   padding: 0.6rem 1.2rem;
@@ -565,8 +698,100 @@ async function eliminarUsuario(id) {
   transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-  background: #f5f5f5;
+.btn-secondary:hover { background: #f5f5f5; }
+
+/* DROP ZONES */
+.drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: #E50914;
+  background: #fff5f5;
+  color: #E50914;
+}
+
+.drop-zone p { margin: 0; font-size: 0.95rem; }
+.drop-zone small { font-size: 0.8rem; color: #bbb; }
+
+.drop-zone-small {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafafa;
+}
+
+.drop-zone-small:hover, .drop-zone-small.drag-over {
+  border-color: #E50914;
+  background: #fff5f5;
+}
+
+.drop-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.drop-placeholder.ok { color: #1a7a4a; }
+
+.preview-portada {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.preview-portada img {
+  width: 40px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.preview-portada span { font-size: 0.8rem; color: #666; }
+
+.subiendo {
+  font-size: 0.82rem;
+  color: #E50914;
+  margin-top: 0.4rem;
+}
+
+/* AVATARES */
+.avatares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+.avatar-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #eee;
+}
+
+.vacio-avatares {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #aaa;
+  padding: 2rem;
+  font-size: 0.9rem;
 }
 
 /* MODAL */
@@ -585,7 +810,7 @@ async function eliminarUsuario(id) {
   background: #fff;
   border-radius: 12px;
   width: 100%;
-  max-width: 580px;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -598,10 +823,7 @@ async function eliminarUsuario(id) {
   border-bottom: 1px solid #eee;
 }
 
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
+.modal-header h3 { margin: 0; font-size: 1.1rem; }
 
 .cerrar-modal {
   background: none;
@@ -624,24 +846,14 @@ async function eliminarUsuario(id) {
   padding: 1.5rem;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field-full { grid-column: 1 / -1; }
 
-.field-full {
-  grid-column: 1 / -1;
-}
-
-.field label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #555;
-}
+.field label { font-size: 0.82rem; font-weight: 600; color: #555; }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   padding: 0.6rem 0.8rem;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -650,24 +862,12 @@ async function eliminarUsuario(id) {
   outline: none;
   transition: border-color 0.2s;
   color: #333;
+  background: #fff;
 }
 
 .field input:focus,
-.field textarea:focus {
-  border-color: #E50914;
-}
-
-.field small {
-  font-size: 0.75rem;
-  color: #999;
-}
-
-.field small code {
-  background: #f0f0f0;
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  font-size: 0.72rem;
-}
+.field textarea:focus,
+.field select:focus { border-color: #E50914; }
 
 .modal-footer {
   display: flex;
