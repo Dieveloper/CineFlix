@@ -116,6 +116,24 @@ namespace backend.Controllers
 
             return Ok(new { url = $"/avatares/{fileName}" });
         }
+
+        // 7. Eliminar un avatar
+        [HttpDelete("eliminar-avatar")]
+        public IActionResult EliminarAvatar([FromBody] EliminarAvatarDto dto)
+        {
+            string ruta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", dto.Url.TrimStart('/'));
+            if (System.IO.File.Exists(ruta))
+            {
+                System.IO.File.Delete(ruta);
+                return Ok(new { mensaje = "Avatar eliminado." });
+            }
+            return NotFound("El archivo no existe.");
+        }
+
+        public class EliminarAvatarDto
+        {
+            public string Url { get; set; } = string.Empty;
+        }
     }
 
     public class CambioFotoDto

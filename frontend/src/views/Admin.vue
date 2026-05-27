@@ -31,7 +31,6 @@
             <Plus :size="16" /> Añadir película
           </button>
         </div>
-
         <div class="tabla-contenedor">
           <table class="tabla">
             <thead>
@@ -48,11 +47,7 @@
             <tbody>
               <tr v-for="pelicula in peliculas" :key="pelicula.id">
                 <td>
-                  <img
-                    v-if="pelicula.imagernUrl"
-                    :src="`http://localhost:5097${pelicula.imagernUrl}`"
-                    class="portada-mini"
-                  />
+                  <img v-if="pelicula.imagernUrl" :src="`http://localhost:5097${pelicula.imagernUrl}`" class="portada-mini" />
                   <div v-else class="portada-vacia"><ImageOff :size="20" /></div>
                 </td>
                 <td>{{ pelicula.titulo }}</td>
@@ -65,12 +60,8 @@
                   </span>
                 </td>
                 <td class="acciones">
-                  <button class="btn-icon" @click="abrirModalPelicula(pelicula)" title="Editar">
-                    <Pencil :size="16" />
-                  </button>
-                  <button class="btn-icon danger" @click="eliminarPelicula(pelicula.id)" title="Eliminar">
-                    <Trash2 :size="16" />
-                  </button>
+                  <button class="btn-icon" @click="abrirModalPelicula(pelicula)" title="Editar"><Pencil :size="16" /></button>
+                  <button class="btn-icon danger" @click="eliminarPelicula(pelicula.id)" title="Eliminar"><Trash2 :size="16" /></button>
                 </td>
               </tr>
               <tr v-if="peliculas.length === 0">
@@ -86,7 +77,6 @@
         <div class="admin-header">
           <h1>Usuarios</h1>
         </div>
-
         <div class="tabla-contenedor">
           <table class="tabla">
             <thead>
@@ -109,17 +99,11 @@
                   </span>
                 </td>
                 <td class="acciones">
-                  <button
-                    class="btn-icon"
-                    @click="toggleAdmin(usuario)"
-                    :title="usuario.esAdmin ? 'Quitar admin' : 'Hacer admin'"
-                  >
+                  <button class="btn-icon" @click="toggleAdmin(usuario)" :title="usuario.esAdmin ? 'Quitar admin' : 'Hacer admin'">
                     <ShieldCheck v-if="!usuario.esAdmin" :size="16" />
                     <ShieldOff v-else :size="16" />
                   </button>
-                  <button class="btn-icon danger" @click="eliminarUsuario(usuario.id)" title="Eliminar">
-                    <Trash2 :size="16" />
-                  </button>
+                  <button class="btn-icon danger" @click="eliminarUsuario(usuario.id)" title="Eliminar"><Trash2 :size="16" /></button>
                 </td>
               </tr>
               <tr v-if="usuarios.length === 0">
@@ -135,8 +119,6 @@
         <div class="admin-header">
           <h1>Avatares</h1>
         </div>
-
-        <!-- ZONA DE SUBIDA -->
         <div
           class="drop-zone"
           :class="{ 'drag-over': arrastandoAvatar }"
@@ -150,17 +132,15 @@
           <small>PNG, JPG, WEBP</small>
           <input ref="inputAvatar" type="file" accept="image/*" style="display:none" @change="onSelectAvatar" />
         </div>
-
         <div v-if="subiendoAvatar" class="subiendo">Subiendo avatar...</div>
-
-        <!-- GRID DE AVATARES -->
         <div class="avatares-grid">
           <div v-for="avatar in avatares" :key="avatar" class="avatar-item">
             <img :src="`http://localhost:5097${avatar}`" />
+            <button class="btn-borrar-avatar" @click="eliminarAvatar(avatar)" title="Eliminar">
+              <Trash2 :size="14" />
+            </button>
           </div>
-          <div v-if="avatares.length === 0" class="vacio-avatares">
-            No hay avatares todavía. Sube el primero.
-          </div>
+          <div v-if="avatares.length === 0" class="vacio-avatares">No hay avatares todavía. Sube el primero.</div>
         </div>
       </div>
 
@@ -187,19 +167,21 @@
             <label>Año *</label>
             <input v-model="form.anio" type="number" placeholder="2024" />
           </div>
-          <div class="field">
-            <label>Género</label>
-            <select v-model="form.genero">
-              <option value="">Sin género</option>
-              <option v-for="g in generos" :key="g" :value="g">{{ g }}</option>
-            </select>
+          <div class="field field-full">
+            <label>Géneros</label>
+            <div class="generos-grid">
+              <label v-for="g in generos" :key="g" class="genero-check">
+                <input type="checkbox" :value="g" :checked="generosSeleccionados.includes(g)" @change="toggleGenero(g)" />
+                {{ g }}
+              </label>
+            </div>
           </div>
           <div class="field field-full">
             <label>Sinopsis</label>
             <textarea v-model="form.sinopsis" rows="3" placeholder="Descripción de la película"></textarea>
           </div>
 
-          <!-- SUBIDA PORTADA -->
+          <!-- PORTADA -->
           <div class="field field-full">
             <label>Portada</label>
             <div
@@ -208,7 +190,7 @@
               @dragover.prevent="arrastandoPortada = true"
               @dragleave="arrastandoPortada = false"
               @drop.prevent="onDropPortada"
-              @click="$refs.inputPortada.click()"
+              @click="peliculaEditando ? $refs.inputPortada.click() : null"
             >
               <div v-if="form.imagernUrl" class="preview-portada">
                 <img :src="`http://localhost:5097${form.imagernUrl}`" />
@@ -216,14 +198,14 @@
               </div>
               <div v-else class="drop-placeholder">
                 <Upload :size="20" />
-                <span>Arrastra la portada aquí o haz clic</span>
+                <span>{{ peliculaEditando ? 'Arrastra la portada aquí o haz clic' : '⚠️ Guarda primero la película para subir archivos' }}</span>
               </div>
               <input ref="inputPortada" type="file" accept="image/*" style="display:none" @change="onSelectPortada" />
             </div>
             <div v-if="subiendoPortada" class="subiendo">Subiendo portada...</div>
           </div>
 
-          <!-- SUBIDA VÍDEO -->
+          <!-- VÍDEO -->
           <div class="field field-full">
             <label>Vídeo</label>
             <div
@@ -232,7 +214,7 @@
               @dragover.prevent="arrastandoVideo = true"
               @dragleave="arrastandoVideo = false"
               @drop.prevent="onDropVideo"
-              @click="$refs.inputVideo.click()"
+              @click="peliculaEditando ? $refs.inputVideo.click() : null"
             >
               <div v-if="form.videoUrl" class="drop-placeholder ok">
                 <CheckCircle :size="20" />
@@ -240,7 +222,7 @@
               </div>
               <div v-else class="drop-placeholder">
                 <Upload :size="20" />
-                <span>Arrastra el vídeo aquí o haz clic</span>
+                <span>{{ peliculaEditando ? 'Arrastra el vídeo aquí o haz clic' : '⚠️ Guarda primero la película para subir archivos' }}</span>
               </div>
               <input ref="inputVideo" type="file" accept="video/*" style="display:none" @change="onSelectVideo" />
             </div>
@@ -299,6 +281,8 @@ const generos = [
   'Ciencia Ficción', 'Documental', 'Animación', 'Thriller', 'Corto'
 ]
 
+const generosSeleccionados = ref([])
+
 const form = ref({
   titulo: '',
   director: '',
@@ -346,6 +330,18 @@ async function cargarAvatares() {
   }
 }
 
+// ---- GÉNEROS ----
+
+function toggleGenero(g) {
+  const idx = generosSeleccionados.value.indexOf(g)
+  if (idx === -1) {
+    generosSeleccionados.value.push(g)
+  } else {
+    generosSeleccionados.value.splice(idx, 1)
+  }
+  form.value.genero = generosSeleccionados.value.join(', ')
+}
+
 // ---- MODAL PELÍCULA ----
 
 function abrirModalPelicula(pelicula) {
@@ -360,12 +356,16 @@ function abrirModalPelicula(pelicula) {
       imagernUrl: pelicula.imagernUrl || '',
       videoUrl: pelicula.videoUrl || '',
     }
+    generosSeleccionados.value = pelicula.genero
+      ? pelicula.genero.split(', ').filter(Boolean)
+      : []
   } else {
     form.value = {
       titulo: '', director: '', sinopsis: '',
       anio: new Date().getFullYear(),
       genero: '', imagernUrl: '', videoUrl: '',
     }
+    generosSeleccionados.value = []
   }
   modalPeliculaVisible.value = true
 }
@@ -373,6 +373,7 @@ function abrirModalPelicula(pelicula) {
 function cerrarModalPelicula() {
   modalPeliculaVisible.value = false
   peliculaEditando.value = null
+  generosSeleccionados.value = []
 }
 
 async function guardarPelicula() {
@@ -384,11 +385,13 @@ async function guardarPelicula() {
       await axios.put(`/api/Peliculas/${peliculaEditando.value.id}`, {
         id: peliculaEditando.value.id, ...datos
       })
+      await cargarPeliculas()
+      cerrarModalPelicula()
     } else {
-      await axios.post('/api/Peliculas', datos)
+      const res = await axios.post('/api/Peliculas', datos)
+      await cargarPeliculas()
+      peliculaEditando.value = res.data
     }
-    await cargarPeliculas()
-    cerrarModalPelicula()
   } catch (error) {
     console.error('Error al guardar película:', error)
   } finally {
@@ -426,6 +429,7 @@ async function subirPortada(archivo) {
 }
 
 function onDropPortada(e) {
+  if (!peliculaEditando.value) return
   const archivo = e.dataTransfer.files[0]
   if (archivo) subirPortada(archivo)
 }
@@ -455,6 +459,7 @@ async function subirVideo(archivo) {
 }
 
 function onDropVideo(e) {
+  if (!peliculaEditando.value) return
   const archivo = e.dataTransfer.files[0]
   if (archivo) subirVideo(archivo)
 }
@@ -491,6 +496,16 @@ function onSelectAvatar(e) {
   if (archivo) subirAvatar(archivo)
 }
 
+async function eliminarAvatar(url) {
+  if (!confirm('¿Seguro que quieres eliminar este avatar?')) return
+  try {
+    await axios.delete('/api/Perfiles/eliminar-avatar', { data: { url } })
+    await cargarAvatares()
+  } catch (error) {
+    console.error('Error al eliminar avatar:', error)
+  }
+}
+
 // ---- USUARIOS ----
 
 async function toggleAdmin(usuario) {
@@ -498,7 +513,7 @@ async function toggleAdmin(usuario) {
     await axios.put(`/api/Usuarios/${usuario.id}`, {
       nombre: usuario.nombre,
       email: usuario.email,
-      password: usuario.password,
+      password: usuario.password || '',
       esAdmin: !usuario.esAdmin,
     })
     await cargarUsuarios()
@@ -527,7 +542,6 @@ async function eliminarUsuario(id) {
   color: #1a1a2e;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 220px;
   background: #1a1a2e;
@@ -589,7 +603,6 @@ async function eliminarUsuario(id) {
 
 .btn-volver:hover { border-color: #fff; color: #fff; }
 
-/* MAIN */
 .admin-main { flex: 1; padding: 2rem; overflow-y: auto; }
 
 .admin-header {
@@ -601,7 +614,6 @@ async function eliminarUsuario(id) {
 
 .admin-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
 
-/* TABLA */
 .tabla-contenedor {
   background: #fff;
   border-radius: 12px;
@@ -668,7 +680,6 @@ async function eliminarUsuario(id) {
 
 .vacio { text-align: center; color: #aaa; padding: 2rem !important; }
 
-/* BOTONES */
 .btn-primary {
   display: flex;
   align-items: center;
@@ -700,7 +711,6 @@ async function eliminarUsuario(id) {
 
 .btn-secondary:hover { background: #f5f5f5; }
 
-/* DROP ZONES */
 .drop-zone {
   border: 2px dashed #ccc;
   border-radius: 12px;
@@ -717,12 +727,7 @@ async function eliminarUsuario(id) {
   margin-bottom: 1.5rem;
 }
 
-.drop-zone:hover, .drop-zone.drag-over {
-  border-color: #E50914;
-  background: #fff5f5;
-  color: #E50914;
-}
-
+.drop-zone:hover, .drop-zone.drag-over { border-color: #E50914; background: #fff5f5; color: #E50914; }
 .drop-zone p { margin: 0; font-size: 0.95rem; }
 .drop-zone small { font-size: 0.8rem; color: #bbb; }
 
@@ -735,10 +740,7 @@ async function eliminarUsuario(id) {
   background: #fafafa;
 }
 
-.drop-zone-small:hover, .drop-zone-small.drag-over {
-  border-color: #E50914;
-  background: #fff5f5;
-}
+.drop-zone-small:hover, .drop-zone-small.drag-over { border-color: #E50914; background: #fff5f5; }
 
 .drop-placeholder {
   display: flex;
@@ -750,33 +752,19 @@ async function eliminarUsuario(id) {
 
 .drop-placeholder.ok { color: #1a7a4a; }
 
-.preview-portada {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.preview-portada img {
-  width: 40px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
+.preview-portada { display: flex; align-items: center; gap: 0.75rem; }
+.preview-portada img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; }
 .preview-portada span { font-size: 0.8rem; color: #666; }
 
-.subiendo {
-  font-size: 0.82rem;
-  color: #E50914;
-  margin-top: 0.4rem;
-}
+.subiendo { font-size: 0.82rem; color: #E50914; margin-top: 0.4rem; }
 
-/* AVATARES */
 .avatares-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 1rem;
 }
+
+.avatar-item { position: relative; }
 
 .avatar-item img {
   width: 100%;
@@ -786,6 +774,25 @@ async function eliminarUsuario(id) {
   border: 2px solid #eee;
 }
 
+.btn-borrar-avatar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.avatar-item:hover .btn-borrar-avatar { opacity: 1; }
+.btn-borrar-avatar:hover { background: #E50914; }
+
 .vacio-avatares {
   grid-column: 1 / -1;
   text-align: center;
@@ -794,7 +801,6 @@ async function eliminarUsuario(id) {
   font-size: 0.9rem;
 }
 
-/* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -848,12 +854,10 @@ async function eliminarUsuario(id) {
 
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 .field-full { grid-column: 1 / -1; }
-
 .field label { font-size: 0.82rem; font-weight: 600; color: #555; }
 
 .field input,
-.field textarea,
-.field select {
+.field textarea {
   padding: 0.6rem 0.8rem;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -865,9 +869,25 @@ async function eliminarUsuario(id) {
   background: #fff;
 }
 
-.field input:focus,
-.field textarea:focus,
-.field select:focus { border-color: #E50914; }
+.field input:focus, .field textarea:focus { border-color: #E50914; }
+
+.generos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.genero-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: #444;
+  cursor: pointer;
+}
+
+.genero-check input { cursor: pointer; accent-color: #E50914; }
 
 .modal-footer {
   display: flex;

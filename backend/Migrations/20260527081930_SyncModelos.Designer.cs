@@ -10,8 +10,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(CineContext))]
-    [Migration("20260525095235_ActualizarModelos")]
-    partial class ActualizarModelos
+    [Migration("20260527081930_SyncModelos")]
+    partial class SyncModelos
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
