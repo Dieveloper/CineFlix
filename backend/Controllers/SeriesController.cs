@@ -17,7 +17,6 @@ public class SeriesController : ControllerBase
         _context = context;
     }
     
-    // Esto es un ENDPOINT GET para obtener una serie específica
     [HttpGet("{id}")]
  
     public async Task<ActionResult<Serie>> GetSerie(int id)
@@ -30,14 +29,12 @@ public class SeriesController : ControllerBase
         return Ok(serie);
     }
 
-    // Esto es un ENDPOINT GET para obtener todas las series
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Serie>>> GetSeries()
     {
         return await _context.Series.ToListAsync();
     }
 
-    // ESTO ES UN ENDPOINT POST PARA AGREGAR UNA NUEVA SERIE
     [HttpPost]
     public async Task<ActionResult<Serie>> PostSerie(Serie serie)
     {
@@ -46,7 +43,6 @@ public class SeriesController : ControllerBase
         return Ok(serie);
     }
 
-    // ESTO ES UN ENDPOINT DELETE PARA ELIMINAR UNA SERIE
     [HttpDelete("{id}")]
     public async Task<ActionResult<Serie>> DeleteSerie(int id)
     {
@@ -60,7 +56,6 @@ public class SeriesController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(serie);
     }
-    // ESTO ES UN ENDPOINT PUT PARA EDITAR UNA SERIE
     
     [HttpPut("{id}")]
     public async Task<IActionResult> EditSerie(int id, Serie serieActualizada)
@@ -90,4 +85,41 @@ public class SeriesController : ControllerBase
 
         return Ok(serieActualizada);
     }
+
+    [HttpPost("{id}/upload-portada")]
+    public async Task<IActionResult> SubirPortada([FromRoute] int id, [FromForm] SubirSerieDto dto)
+    {
+        if (dto.Archivo == null || dto.Archivo.Length == 0)
+            return BadRequest("No se ha enviado ningún archivo.");
+
+        var serie = await _context.Series.FindAsync(id);
+        if (serie == null) return NotFound();
+
+        string carpeta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "series", "portadas");
+        if (!Directory.Exists(carpeta)) Directory.CreateDirectory(carpeta);
+
+        if (!string.IsNullOrEmpty(serie.ImagenUrl))
+        {
+            string vieja = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", serie.ImagenUrl.TrimStart('/'));
+            if (System.IO.File.Exists(vieja)) System.IO.File.Delete(vieja);
+        }
+
+        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Archivo.FileName)}";
+        string rutaCompleta = Path.Combine(carpeta, fileName);
+
+        using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+        {
+            await dto.Archivo.CopyToAsync(stream);
+        }
+
+        serie.ImagenUrl = $"/series/portadas/{fileName}";
+        await _context.SaveChangesAsync();
+
+        return Ok(new { url = serie.ImagenUrl });
+    }
+}
+
+public class SubirSerieDto
+{
+    public IFormFile Archivo { get; set; } = null!;
 }

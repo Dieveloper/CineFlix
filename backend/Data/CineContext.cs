@@ -11,4 +11,5 @@ public class CineContext : DbContext
     public DbSet<Serie> Series => Set<Serie>();
     public DbSet<Usuarios> Usuarios => Set<Usuarios>();
     public DbSet<Perfil> Perfil => Set<Perfil>();
+    public DbSet<Capitulo> Capitulos { get; set; }
     }

@@ -40,6 +40,10 @@ public class PeliculasController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Pelicula>> PostPelicula(Pelicula pelicula)
     {
+        pelicula.ImagenUrl = pelicula.ImagenUrl ?? string.Empty;
+        pelicula.VideoUrl = pelicula.VideoUrl ?? string.Empty;
+        pelicula.Genero = pelicula.Genero ?? string.Empty;
+
         _context.Peliculas.Add(pelicula);
         await _context.SaveChangesAsync();
         return Ok(pelicula);
@@ -57,9 +61,9 @@ public class PeliculasController : ControllerBase
         }
 
         // Borramos la imagen del servidor si existe para no dejar basura
-        if (!string.IsNullOrEmpty(pelicula.ImagernUrl))
+        if (!string.IsNullOrEmpty(pelicula.ImagenUrl))
         {
-            string rutaImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pelicula.ImagernUrl.TrimStart('/'));
+            string rutaImagen = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pelicula.ImagenUrl.TrimStart('/'));
             if (System.IO.File.Exists(rutaImagen)) System.IO.File.Delete(rutaImagen);
         }
 
@@ -127,9 +131,9 @@ public class PeliculasController : ControllerBase
         }
 
         // Si ya tenía una imagen previa, la eliminamos físicamente
-        if (!string.IsNullOrEmpty(pelicula.ImagernUrl))
+        if (!string.IsNullOrEmpty(pelicula.ImagenUrl))
         {
-            string viejaRuta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pelicula.ImagernUrl.TrimStart('/'));
+            string viejaRuta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pelicula.ImagenUrl.TrimStart('/'));
             if (System.IO.File.Exists(viejaRuta)) System.IO.File.Delete(viejaRuta);
         }
 
@@ -144,8 +148,8 @@ public class PeliculasController : ControllerBase
 
         string urlPublica = $"/peliculas/portadas/{nombreArchivo}";
 
-        // Vinculado con tu propiedad exacta del modelo: ImagernUrl
-        pelicula.ImagernUrl = urlPublica; 
+        // Vinculado con tu propiedad exacta del modelo: ImagenUrl
+        pelicula.ImagenUrl = urlPublica; 
         await _context.SaveChangesAsync();
 
         return Ok(new { mensaje = "Portada subida con éxito", url = urlPublica });

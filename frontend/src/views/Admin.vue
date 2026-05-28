@@ -47,7 +47,7 @@
             <tbody>
               <tr v-for="pelicula in peliculas" :key="pelicula.id">
                 <td>
-                  <img v-if="pelicula.imagernUrl" :src="`http://localhost:5097${pelicula.imagernUrl}`" class="portada-mini" />
+                  <img v-if="pelicula.imagenUrl" :src="`http://localhost:5097${pelicula.imagenUrl}`" class="portada-mini" />
                   <div v-else class="portada-vacia"><ImageOff :size="20" /></div>
                 </td>
                 <td>{{ pelicula.titulo }}</td>
@@ -61,6 +61,8 @@
                 </td>
                 <td class="acciones">
                   <button class="btn-icon" @click="abrirModalPelicula(pelicula)" title="Editar"><Pencil :size="16" /></button>
+                  <button class="btn-icon" @click="abrirModalPortada(pelicula)" title="Subir portada"><Image :size="16" /></button>
+                  <button class="btn-icon" @click="abrirModalVideo(pelicula)" title="Subir video"><Film :size="16" /></button>
                   <button class="btn-icon danger" @click="eliminarPelicula(pelicula.id)" title="Eliminar"><Trash2 :size="16" /></button>
                 </td>
               </tr>
@@ -180,60 +182,92 @@
             <label>Sinopsis</label>
             <textarea v-model="form.sinopsis" rows="3" placeholder="Descripción de la película"></textarea>
           </div>
-
-          <!-- PORTADA -->
-          <div class="field field-full">
-            <label>Portada</label>
-            <div
-              class="drop-zone-small"
-              :class="{ 'drag-over': arrastandoPortada }"
-              @dragover.prevent="arrastandoPortada = true"
-              @dragleave="arrastandoPortada = false"
-              @drop.prevent="onDropPortada"
-              @click="peliculaEditando ? $refs.inputPortada.click() : null"
-            >
-              <div v-if="form.imagernUrl" class="preview-portada">
-                <img :src="`http://localhost:5097${form.imagernUrl}`" />
-                <span>{{ form.imagernUrl }}</span>
-              </div>
-              <div v-else class="drop-placeholder">
-                <Upload :size="20" />
-                <span>{{ peliculaEditando ? 'Arrastra la portada aquí o haz clic' : '⚠️ Guarda primero la película para subir archivos' }}</span>
-              </div>
-              <input ref="inputPortada" type="file" accept="image/*" style="display:none" @change="onSelectPortada" />
-            </div>
-            <div v-if="subiendoPortada" class="subiendo">Subiendo portada...</div>
-          </div>
-
-          <!-- VÍDEO -->
-          <div class="field field-full">
-            <label>Vídeo</label>
-            <div
-              class="drop-zone-small"
-              :class="{ 'drag-over': arrastandoVideo }"
-              @dragover.prevent="arrastandoVideo = true"
-              @dragleave="arrastandoVideo = false"
-              @drop.prevent="onDropVideo"
-              @click="peliculaEditando ? $refs.inputVideo.click() : null"
-            >
-              <div v-if="form.videoUrl" class="drop-placeholder ok">
-                <CheckCircle :size="20" />
-                <span>{{ form.videoUrl }}</span>
-              </div>
-              <div v-else class="drop-placeholder">
-                <Upload :size="20" />
-                <span>{{ peliculaEditando ? 'Arrastra el vídeo aquí o haz clic' : '⚠️ Guarda primero la película para subir archivos' }}</span>
-              </div>
-              <input ref="inputVideo" type="file" accept="video/*" style="display:none" @change="onSelectVideo" />
-            </div>
-            <div v-if="subiendoVideo" class="subiendo">Subiendo vídeo... puede tardar unos segundos.</div>
-          </div>
         </div>
 
         <div class="modal-footer">
           <button class="btn-secondary" @click="cerrarModalPelicula">Cancelar</button>
           <button class="btn-primary" @click="guardarPelicula" :disabled="guardando">
             {{ guardando ? 'Guardando...' : peliculaEditando ? 'Guardar cambios' : 'Añadir película' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL PORTADA ==================== -->
+    <div class="modal-overlay" v-if="modalPortadaVisible" @click.self="cerrarModalPortada">
+      <div class="modal-contenido modal-archivo">
+        <div class="modal-header">
+          <h3>Subir portada - {{ peliculaEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalPortada"><X :size="20" /></button>
+        </div>
+
+        <div class="modal-body">
+          <div
+            class="drop-zone-small"
+            :class="{ 'drag-over': arrastandoPortada }"
+            @dragover.prevent="arrastandoPortada = true"
+            @dragleave="arrastandoPortada = false"
+            @drop.prevent="onDropPortada"
+            @click="$refs.inputPortada.click()"
+          >
+            <div v-if="previewPortada" class="preview-portada-modal">
+              <img :src="previewPortada" />
+              <p>Portada seleccionada</p>
+            </div>
+            <div v-else class="drop-placeholder-modal">
+              <Upload :size="32" />
+              <p>Arrastra la portada aquí o haz clic</p>
+              <small>PNG, JPG, WEBP</small>
+            </div>
+            <input ref="inputPortada" type="file" accept="image/*" style="display:none" @change="onSelectPortada" />
+          </div>
+          <div v-if="subiendoPortada" class="subiendo">Subiendo portada...</div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalPortada">Cancelar</button>
+          <button class="btn-primary" @click="guardarPortada" :disabled="subiendoPortada || !archivoPortadaSeleccionado">
+            {{ subiendoPortada ? 'Subiendo...' : 'Guardar portada' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL VIDEO ==================== -->
+    <div class="modal-overlay" v-if="modalVideoVisible" @click.self="cerrarModalVideo">
+      <div class="modal-contenido modal-archivo">
+        <div class="modal-header">
+          <h3>Subir video - {{ peliculaEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalVideo"><X :size="20" /></button>
+        </div>
+
+        <div class="modal-body">
+          <div
+            class="drop-zone-small"
+            :class="{ 'drag-over': arrastandoVideo }"
+            @dragover.prevent="arrastandoVideo = true"
+            @dragleave="arrastandoVideo = false"
+            @drop.prevent="onDropVideo"
+            @click="$refs.inputVideo.click()"
+          >
+            <div v-if="previewVideo" class="drop-placeholder ok">
+              <CheckCircle :size="32" />
+              <p>Video seleccionado</p>
+            </div>
+            <div v-else class="drop-placeholder-modal">
+              <Upload :size="32" />
+              <p>Arrastra el video aquí o haz clic</p>
+              <small>MP4, WebM, Ogg</small>
+            </div>
+            <input ref="inputVideo" type="file" accept="video/*" style="display:none" @change="onSelectVideo" />
+          </div>
+          <div v-if="subiendoVideo" class="subiendo">Subiendo video... puede tardar unos segundos.</div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalVideo">Cancelar</button>
+          <button class="btn-primary" @click="guardarVideo" :disabled="subiendoVideo || !archivoVideoSeleccionado">
+            {{ subiendoVideo ? 'Subiendo...' : 'Guardar video' }}
           </button>
         </div>
       </div>
@@ -249,7 +283,7 @@ import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
 import {
   Film, Users, ArrowLeft, Plus, Pencil, Trash2, X,
-  ImageOff, ShieldCheck, ShieldOff, Upload, CheckCircle,
+  ImageOff, ShieldCheck, ShieldOff, Upload, CheckCircle, Image,
   Image as ImageIcon
 } from 'lucide-vue-next'
 
@@ -265,6 +299,9 @@ const modalPeliculaVisible = ref(false)
 const peliculaEditando = ref(null)
 const guardando = ref(false)
 
+const modalPortadaVisible = ref(false)
+const modalVideoVisible = ref(false)
+
 const subiendoPortada = ref(false)
 const subiendoVideo = ref(false)
 const subiendoAvatar = ref(false)
@@ -275,6 +312,12 @@ const arrastandoAvatar = ref(false)
 const inputPortada = ref(null)
 const inputVideo = ref(null)
 const inputAvatar = ref(null)
+
+const archivoPortadaSeleccionado = ref(null)
+const archivoVideoSeleccionado = ref(null)
+
+const previewPortada = ref(null)
+const previewVideo = ref(null)
 
 const generos = [
   'Acción', 'Aventura', 'Comedia', 'Drama', 'Terror',
@@ -289,7 +332,7 @@ const form = ref({
   sinopsis: '',
   anio: new Date().getFullYear(),
   genero: '',
-  imagernUrl: '',
+  imagenUrl: '',
   videoUrl: '',
 })
 
@@ -353,7 +396,7 @@ function abrirModalPelicula(pelicula) {
       sinopsis: pelicula.sinopsis,
       anio: pelicula.anio,
       genero: pelicula.genero || '',
-      imagernUrl: pelicula.imagernUrl || '',
+      imagenUrl: pelicula.imagenUrl || '',
       videoUrl: pelicula.videoUrl || '',
     }
     generosSeleccionados.value = pelicula.genero
@@ -363,7 +406,7 @@ function abrirModalPelicula(pelicula) {
     form.value = {
       titulo: '', director: '', sinopsis: '',
       anio: new Date().getFullYear(),
-      genero: '', imagernUrl: '', videoUrl: '',
+      genero: '', imagenUrl: '', videoUrl: '',
     }
     generosSeleccionados.value = []
   }
@@ -377,23 +420,47 @@ function cerrarModalPelicula() {
 }
 
 async function guardarPelicula() {
-  if (!form.value.titulo || !form.value.director || !form.value.anio) return
+  if (!form.value.titulo || !form.value.director || !form.value.anio) {
+    alert('Por favor rellena título, director y año')
+    return
+  }
   guardando.value = true
   try {
-    const datos = { ...form.value, anio: parseInt(form.value.anio) }
-    if (peliculaEditando.value) {
-      await axios.put(`/api/Peliculas/${peliculaEditando.value.id}`, {
-        id: peliculaEditando.value.id, ...datos
-      })
-      await cargarPeliculas()
-      cerrarModalPelicula()
-    } else {
-      const res = await axios.post('/api/Peliculas', datos)
-      await cargarPeliculas()
-      peliculaEditando.value = res.data
+    const anio = parseInt(form.value.anio)
+    if (isNaN(anio)) {
+      alert('El año debe ser un número válido')
+      guardando.value = false
+      return
     }
+
+    let datos = {
+      titulo: form.value.titulo,
+      director: form.value.director,
+      anio: anio,
+      sinopsis: form.value.sinopsis || '',
+      genero: form.value.genero || ''
+    }
+
+    if (peliculaEditando.value) {
+      // Para editar, enviamos también los URLs
+      datos.imagenUrl = form.value.imagenUrl || ''
+      datos.videoUrl = form.value.videoUrl || ''
+      await axios.put(`/api/Peliculas/${peliculaEditando.value.id}`, {
+        id: peliculaEditando.value.id,
+        ...datos
+      })
+      alert('Película actualizada correctamente')
+    } else {
+      // Para crear, NO enviamos URLs (se suben después)
+      const res = await axios.post('/api/Peliculas', datos)
+      peliculaEditando.value = res.data
+      alert('Película creada correctamente. Ahora puedes subir portada y video.')
+    }
+    await cargarPeliculas()
+    cerrarModalPelicula()
   } catch (error) {
     console.error('Error al guardar película:', error)
+    alert(`Error al guardar: ${error.response?.data?.message || error.message}`)
   } finally {
     guardando.value = false
   }
@@ -409,19 +476,78 @@ async function eliminarPelicula(id) {
   }
 }
 
+// ---- MODAL PORTADA ----
+
+function abrirModalPortada(pelicula) {
+  peliculaEditando.value = pelicula
+  previewPortada.value = null
+  archivoPortadaSeleccionado.value = null
+  modalPortadaVisible.value = true
+}
+
+function cerrarModalPortada() {
+  modalPortadaVisible.value = false
+  archivoPortadaSeleccionado.value = null
+  previewPortada.value = null
+}
+
+async function guardarPortada() {
+  if (!archivoPortadaSeleccionado.value) {
+    alert('Selecciona una imagen primero')
+    return
+  }
+  await subirPortada(archivoPortadaSeleccionado.value)
+  archivoPortadaSeleccionado.value = null
+  previewPortada.value = null
+  await cargarPeliculas()
+  cerrarModalPortada()
+  alert('Portada subida correctamente')
+}
+
+// ---- MODAL VIDEO ----
+
+function abrirModalVideo(pelicula) {
+  peliculaEditando.value = pelicula
+  previewVideo.value = null
+  archivoVideoSeleccionado.value = null
+  modalVideoVisible.value = true
+}
+
+function cerrarModalVideo() {
+  modalVideoVisible.value = false
+  archivoVideoSeleccionado.value = null
+  previewVideo.value = null
+}
+
+async function guardarVideo() {
+  if (!archivoVideoSeleccionado.value) {
+    alert('Selecciona un video primero')
+    return
+  }
+  await subirVideo(archivoVideoSeleccionado.value)
+  archivoVideoSeleccionado.value = null
+  previewVideo.value = null
+  await cargarPeliculas()
+  cerrarModalVideo()
+  alert('Video subido correctamente')
+}
+
 // ---- SUBIDA PORTADA ----
 
 async function subirPortada(archivo) {
-  if (!peliculaEditando.value) return
+  if (!peliculaEditando.value || !archivo) {
+    alert('Error: Película no encontrada o archivo no válido')
+    return
+  }
   subiendoPortada.value = true
   try {
     const fd = new FormData()
     fd.append('Archivo', archivo)
     const res = await axios.post(`/api/Peliculas/${peliculaEditando.value.id}/upload-portada`, fd)
-    form.value.imagernUrl = res.data.url
-    await cargarPeliculas()
+    form.value.imagenUrl = res.data.url
   } catch (error) {
     console.error('Error al subir portada:', error)
+    alert(`Error al subir portada: ${error.response?.data?.message || error.message}`)
   } finally {
     subiendoPortada.value = false
     arrastandoPortada.value = false
@@ -431,27 +557,44 @@ async function subirPortada(archivo) {
 function onDropPortada(e) {
   if (!peliculaEditando.value) return
   const archivo = e.dataTransfer.files[0]
-  if (archivo) subirPortada(archivo)
+  if (archivo) {
+    archivoPortadaSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortada.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
+  }
 }
 
 function onSelectPortada(e) {
   const archivo = e.target.files[0]
-  if (archivo) subirPortada(archivo)
+  if (archivo) {
+    archivoPortadaSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortada.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
+  }
 }
 
 // ---- SUBIDA VÍDEO ----
 
 async function subirVideo(archivo) {
-  if (!peliculaEditando.value) return
+  if (!peliculaEditando.value || !archivo) {
+    alert('Error: Película no encontrada o archivo no válido')
+    return
+  }
   subiendoVideo.value = true
   try {
     const fd = new FormData()
     fd.append('Archivo', archivo)
     const res = await axios.post(`/api/Peliculas/${peliculaEditando.value.id}/upload-video`, fd)
     form.value.videoUrl = res.data.url
-    await cargarPeliculas()
   } catch (error) {
     console.error('Error al subir vídeo:', error)
+    alert(`Error al subir video: ${error.response?.data?.message || error.message}`)
   } finally {
     subiendoVideo.value = false
     arrastandoVideo.value = false
@@ -461,12 +604,18 @@ async function subirVideo(archivo) {
 function onDropVideo(e) {
   if (!peliculaEditando.value) return
   const archivo = e.dataTransfer.files[0]
-  if (archivo) subirVideo(archivo)
+  if (archivo) {
+    archivoVideoSeleccionado.value = archivo
+    previewVideo.value = `Video: ${archivo.name}`
+  }
 }
 
 function onSelectVideo(e) {
   const archivo = e.target.files[0]
-  if (archivo) subirVideo(archivo)
+  if (archivo) {
+    archivoVideoSeleccionado.value = archivo
+    previewVideo.value = `Video: ${archivo.name}`
+  }
 }
 
 // ---- SUBIDA AVATAR ----
@@ -756,6 +905,38 @@ async function eliminarUsuario(id) {
 .preview-portada img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; }
 .preview-portada span { font-size: 0.8rem; color: #666; }
 
+.preview-portada-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preview-portada-modal img {
+  max-width: 150px;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.preview-portada-modal p {
+  font-size: 0.9rem;
+  color: #1a7a4a;
+  font-weight: 600;
+}
+
+.drop-placeholder-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.drop-placeholder-modal p { margin: 0; }
+.drop-placeholder-modal small { font-size: 0.8rem; color: #bbb; }
+
 .subiendo { font-size: 0.82rem; color: #E50914; margin-top: 0.4rem; }
 
 .avatares-grid {
@@ -819,6 +1000,14 @@ async function eliminarUsuario(id) {
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal-archivo {
+  max-width: 500px;
+}
+
+.modal-body {
+  padding: 1.5rem;
 }
 
 .modal-header {

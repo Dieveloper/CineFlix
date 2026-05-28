@@ -3,6 +3,11 @@ using backend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 500 * 1024 * 1024; // 500 MB
+});
+
 builder.Services.AddDbContext<CineContext>(options =>
     options.UseSqlite("Data Source=cineflix.db"));
 
