@@ -167,8 +167,8 @@
       <div class="modal-contenido">
         <button class="cerrar-modal" @click="cerrarModal"><X :size="20" /></button>
 
-        <div class="modal-video" v-if="itemSeleccionado?.videoUrl">
-          <video controls autoplay :src="`http://localhost:5097${itemSeleccionado.videoUrl}`">
+        <div class="modal-video" v-if="videoSeleccionado" :key="capituloSeleccionado?.id || 'pelicula'">
+          <video ref="videoRef" controls :src="`http://localhost:5097${videoSeleccionado}`" @loadedmetadata="() => console.log('Video cargado')">
             Tu navegador no soporta el vídeo.
           </video>
         </div>
@@ -189,10 +189,43 @@
             <span v-if="itemSeleccionado?.creador">· Creado por {{ itemSeleccionado?.creador }}</span>
           </div>
           <p class="modal-sinopsis">{{ itemSeleccionado?.sinopsis }}</p>
-          <button class="btn-play-modal" v-if="itemSeleccionado?.videoUrl" @click="reproducir">
-            <Play :size="16" /> Reproducir
-          </button>
-          <p class="proximamente" v-else>Próximamente disponible</p>
+
+          <!-- CAPÍTULOS SERIE -->
+          <div v-if="itemSeleccionado?.tipo === 'serie' && capitulos.length > 0" class="seccion-capitulos">
+            <h3>Capítulos</h3>
+            <div class="lista-capitulos">
+              <div
+                v-for="cap in capitulos"
+                :key="cap.id"
+                class="item-capitulo"
+                :class="{ active: capituloSeleccionado?.id === cap.id }"
+                @click="() => { seleccionarCapitulo(cap); console.log('Capítulo seleccionado:', cap) }"
+              >
+                <div class="portada-cap"
+                  :style="cap.imagenUrl
+                    ? { backgroundImage: `url(http://localhost:5097${cap.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                    : { background: '#333' }"
+                >
+                  <div class="numero-overlay">{{ cap.numero }}</div>
+                </div>
+                <div class="info-cap">
+                  <div class="titulo-cap">{{ cap.titulo }}</div>
+                  <div class="estado-cap">{{ cap.videoUrl ? '✓ Video disponible' : 'Sin video' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTONES -->
+          <div class="modal-acciones">
+            <button class="btn-play-modal" v-if="videoSeleccionado || (itemSeleccionado?.tipo === 'pelicula' && itemSeleccionado?.videoUrl)" @click="reproducir">
+              <Play :size="16" /> Reproducir
+            </button>
+            <button class="btn-play-modal" v-else-if="itemSeleccionado?.tipo === 'serie' && capituloSeleccionado?.videoUrl" @click="reproducir">
+              <Play :size="16" /> Reproducir capítulo
+            </button>
+            <p class="proximamente" v-else>Contenido no disponible aún</p>
+          </div>
         </div>
       </div>
     </div>
@@ -212,6 +245,7 @@ const auth = useAuthStore()
 
 const peliculas = ref([])
 const series = ref([])
+const capitulos = ref([])
 const seccionActiva = ref('inicio')
 const scrolled = ref(false)
 const menuPerfilVisible = ref(false)
@@ -219,8 +253,10 @@ const buscarVisible = ref(false)
 const queryBuscar = ref('')
 const modalVisible = ref(false)
 const itemSeleccionado = ref(null)
+const capituloSeleccionado = ref(null)
 const inputBuscar = ref(null)
 const dropdownRef = ref(null)
+const videoRef = ref(null)
 
 // Avatar del perfil activo
 const avatarPerfil = computed(() => {
@@ -228,6 +264,16 @@ const avatarPerfil = computed(() => {
   if (!perfil?.fotoUrl) return ''
   if (perfil.fotoUrl.startsWith('/src/') || perfil.fotoUrl.startsWith('data:')) return perfil.fotoUrl
   return `http://localhost:5097${perfil.fotoUrl}`
+})
+
+// Video seleccionado (capítulo o película)
+const videoSeleccionado = computed(() => {
+  if (itemSeleccionado.value?.tipo === 'serie' && capituloSeleccionado.value) {
+    return capituloSeleccionado.value.videoUrl
+  } else if (itemSeleccionado.value?.tipo === 'pelicula') {
+    return itemSeleccionado.value.videoUrl
+  }
+  return null
 })
 
 // Hero — primera película o serie disponible
@@ -290,19 +336,75 @@ async function toggleBuscar() {
 }
 
 // Modal
-function abrirModal(item) {
+async function abrirModal(item) {
   itemSeleccionado.value = item
   modalVisible.value = true
   buscarVisible.value = false
+  
+  if (item.tipo === 'serie') {
+    await cargarCapitulos(item.id)
+    if (capitulos.value.length > 0) {
+      capituloSeleccionado.value = capitulos.value[0]
+    }
+  } else {
+    capitulos.value = []
+    capituloSeleccionado.value = null
+  }
 }
+
+async function cargarCapitulos(serieId) {
+  try {
+    const res = await axios.get(`/api/Capitulos/serie/${serieId}`)
+    capitulos.value = res.data
+  } catch (error) {
+    console.error('Error al cargar capítulos:', error)
+  }
+}
+
+function seleccionarCapitulo(capitulo) {
+  capituloSeleccionado.value = capitulo
+}
+
+// Watcher para actualizar el video cuando cambia
+watch(videoSeleccionado, async (nuevoVideo) => {
+  if (nuevoVideo && videoRef.value) {
+    await nextTick()
+    videoRef.value.load()
+  }
+})
 
 function cerrarModal() {
   modalVisible.value = false
   itemSeleccionado.value = null
+  capituloSeleccionado.value = null
+  capitulos.value = []
+  if (videoRef.value) {
+    videoRef.value.pause()
+    videoRef.value.currentTime = 0
+  }
 }
 
 function reproducir() {
-  // El vídeo ya está en el modal con autoplay
+  if (!videoRef.value) {
+    alert('Video no disponible')
+    return
+  }
+  
+  // Asegurar que el video está listo
+  if (videoRef.value.readyState >= 2) {
+    // Metadata cargada
+    videoRef.value.play().catch(err => {
+      console.error('Error al reproducir:', err)
+      alert('No se pudo reproducir el video')
+    })
+  } else {
+    // Esperar a que se cargue
+    const onCanPlay = () => {
+      videoRef.value.play().catch(err => console.error('Error:', err))
+      videoRef.value.removeEventListener('canplay', onCanPlay)
+    }
+    videoRef.value.addEventListener('canplay', onCanPlay)
+  }
 }
 
 // Cerrar sesión
@@ -838,6 +940,120 @@ onUnmounted(() => {
   color: #666;
   font-size: 0.9rem;
   font-style: italic;
+}
+
+/* CAPÍTULOS */
+.seccion-capitulos {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #0a0a0a;
+  border-radius: 8px;
+}
+
+.seccion-capitulos h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  color: white;
+}
+
+.lista-capitulos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.item-capitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #1a1a1a;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item-capitulo:hover {
+  background: #252525;
+  border-left-color: #E50914;
+}
+
+.item-capitulo.active {
+  background: #252525;
+  border-left-color: #E50914;
+}
+
+.portada-cap {
+  width: 80px;
+  height: 60px;
+  border-radius: 4px;
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.numero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  transition: background 0.2s;
+}
+
+.item-capitulo:hover .numero-overlay,
+.item-capitulo.active .numero-overlay {
+  background: rgba(229, 9, 20, 0.8);
+}
+
+.numero-cap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #333;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.item-capitulo.active .numero-cap {
+  background: #E50914;
+  color: white;
+}
+
+.info-cap {
+  flex: 1;
+}
+
+.titulo-cap {
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 500;
+}
+
+.estado-cap {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 /* RESPONSIVE */

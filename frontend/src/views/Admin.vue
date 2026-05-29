@@ -8,6 +8,9 @@
         <button :class="{ active: seccion === 'peliculas' }" @click="seccion = 'peliculas'">
           <Film :size="18" /> Películas
         </button>
+        <button :class="{ active: seccion === 'series' }" @click="seccion = 'series'">
+          <Film :size="18" /> Series
+        </button>
         <button :class="{ active: seccion === 'usuarios' }" @click="seccion = 'usuarios'">
           <Users :size="18" /> Usuarios
         </button>
@@ -68,6 +71,51 @@
               </tr>
               <tr v-if="peliculas.length === 0">
                 <td colspan="7" class="vacio">No hay películas todavía.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==================== SERIES ==================== -->
+      <div v-if="seccion === 'series'">
+        <div class="admin-header">
+          <h1>Series</h1>
+          <button class="btn-primary" @click="abrirModalSerie(null)">
+            <Plus :size="16" /> Añadir serie
+          </button>
+        </div>
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Portada</th>
+                <th>Título</th>
+                <th>Creador</th>
+                <th>Año</th>
+                <th>Género</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="serie in series" :key="serie.id">
+                <td>
+                  <img v-if="serie.imagenUrl" :src="`http://localhost:5097${serie.imagenUrl}`" class="portada-mini" />
+                  <div v-else class="portada-vacia"><ImageOff :size="20" /></div>
+                </td>
+                <td>{{ serie.titulo }}</td>
+                <td>{{ serie.creador }}</td>
+                <td>{{ serie.anio }}</td>
+                <td>{{ serie.genero || '—' }}</td>
+                <td class="acciones">
+                  <button class="btn-icon" @click="abrirModalSerie(serie)" title="Editar"><Pencil :size="16" /></button>
+                  <button class="btn-icon" @click="abrirModalCapitulos(serie)" title="Capítulos"><Film :size="16" /></button>
+                  <button class="btn-icon" @click="abrirModalSeriePortada(serie)" title="Subir portada"><Image :size="16" /></button>
+                  <button class="btn-icon danger" @click="eliminarSerie(serie.id)" title="Eliminar"><Trash2 :size="16" /></button>
+                </td>
+              </tr>
+              <tr v-if="series.length === 0">
+                <td colspan="6" class="vacio">No hay series todavía.</td>
               </tr>
             </tbody>
           </table>
@@ -221,7 +269,10 @@
             </div>
             <input ref="inputPortada" type="file" accept="image/*" style="display:none" @change="onSelectPortada" />
           </div>
-          <div v-if="subiendoPortada" class="subiendo">Subiendo portada...</div>
+          <div v-if="subiendoPortada" class="indicador-carga">
+            <div class="spinner"></div>
+            <span>Subiendo portada...</span>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -261,13 +312,250 @@
             </div>
             <input ref="inputVideo" type="file" accept="video/*" style="display:none" @change="onSelectVideo" />
           </div>
-          <div v-if="subiendoVideo" class="subiendo">Subiendo video... puede tardar unos segundos.</div>
+          <div v-if="subiendoVideo" class="indicador-carga">
+            <div class="spinner"></div>
+            <span>Subiendo video... puede tardar unos segundos.</span>
+          </div>
         </div>
 
         <div class="modal-footer">
           <button class="btn-secondary" @click="cerrarModalVideo">Cancelar</button>
           <button class="btn-primary" @click="guardarVideo" :disabled="subiendoVideo || !archivoVideoSeleccionado">
             {{ subiendoVideo ? 'Subiendo...' : 'Guardar video' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL SERIE ==================== -->
+    <div class="modal-overlay" v-if="modalSerieVisible" @click.self="cerrarModalSerie">
+      <div class="modal-contenido">
+        <div class="modal-header">
+          <h3>{{ serieEditando ? 'Editar serie' : 'Añadir serie' }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalSerie"><X :size="20" /></button>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Título *</label>
+            <input v-model="formSerie.titulo" type="text" placeholder="Título de la serie" />
+          </div>
+          <div class="field">
+            <label>Creador *</label>
+            <input v-model="formSerie.creador" type="text" placeholder="Nombre del creador" />
+          </div>
+          <div class="field">
+            <label>Año *</label>
+            <input v-model="formSerie.anio" type="number" placeholder="2024" />
+          </div>
+          <div class="field field-full">
+            <label>Géneros</label>
+            <div class="generos-grid">
+              <label v-for="g in generos" :key="g" class="genero-check">
+                <input type="checkbox" :value="g" :checked="generosSeleccionadosSerie.includes(g)" @change="toggleGeneroSerie(g)" />
+                {{ g }}
+              </label>
+            </div>
+          </div>
+          <div class="field field-full">
+            <label>Sinopsis</label>
+            <textarea v-model="formSerie.sinopsis" rows="3" placeholder="Descripción de la serie"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalSerie">Cancelar</button>
+          <button class="btn-primary" @click="guardarSerie" :disabled="guardando">
+            {{ guardando ? 'Guardando...' : serieEditando ? 'Guardar cambios' : 'Añadir serie' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL CAPÍTULOS -->
+    <div class="modal-overlay" v-if="modalCapitulosVisible" @click.self="cerrarModalCapitulos">
+      <div class="modal-contenido">
+        <div class="modal-header">
+          <h3>Capítulos de {{ serieEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalCapitulos"><X :size="20" /></button>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Título del capítulo *</label>
+            <input v-model="formCapitulo.titulo" type="text" placeholder="Título del capítulo" />
+          </div>
+          <div class="field">
+            <label>Número *</label>
+            <input v-model="formCapitulo.numero" type="number" min="1" />
+          </div>
+          <div class="field field-full">
+            <button class="btn-primary" @click="crearCapitulo" type="button">Añadir capítulo</button>
+          </div>
+        </div>
+
+        <div class="tabla-contenedor">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Título</th>
+                <th>Portada</th>
+                <th>Video</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="capitulo in capitulos" :key="capitulo.id">
+                <td>{{ capitulo.numero }}</td>
+                <td>{{ capitulo.titulo }}</td>
+                <td>
+                  <img v-if="capitulo.imagenUrl" :src="`http://localhost:5097${capitulo.imagenUrl}`" class="portada-mini" />
+                  <div v-else class="portada-vacia"><ImageOff :size="20" /></div>
+                </td>
+                <td>
+                  <span class="badge" :class="capitulo.videoUrl ? 'badge-ok' : 'badge-no'">
+                    {{ capitulo.videoUrl ? 'Sí' : 'No' }}
+                  </span>
+                </td>
+                <td class="acciones">
+                  <button class="btn-icon" @click="abrirModalCapituloPortada(capitulo)" title="Subir portada"><Image :size="16" /></button>
+                  <button class="btn-icon" @click="abrirModalCapituloVideo(capitulo)" title="Subir video"><Film :size="16" /></button>
+                  <button class="btn-icon danger" @click="eliminarCapitulo(capitulo.id)" title="Eliminar"><Trash2 :size="16" /></button>
+                </td>
+              </tr>
+              <tr v-if="capitulos.length === 0">
+                <td colspan="5" class="vacio">No hay capítulos todavía.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL PORTADA CAPÍTULO -->
+    <div class="modal-overlay" v-if="modalCapituloPortadaVisible" @click.self="cerrarModalCapituloPortada">
+      <div class="modal-contenido modal-archivo">
+        <div class="modal-header">
+          <h3>Subir portada - {{ capituloEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalCapituloPortada"><X :size="20" /></button>
+        </div>
+
+        <div class="modal-body">
+          <div
+            class="drop-zone-small"
+            :class="{ 'drag-over': arrastandoPortadaCapitulo }"
+            @dragover.prevent="arrastandoPortadaCapitulo = true"
+            @dragleave="arrastandoPortadaCapitulo = false"
+            @drop.prevent="onDropPortadaCapitulo"
+            @click="$refs.inputPortadaCapitulo.click()"
+          >
+            <div v-if="previewPortadaCapitulo" class="preview-portada-modal">
+              <img :src="previewPortadaCapitulo" />
+              <p>Portada seleccionada</p>
+            </div>
+            <div v-else class="drop-placeholder-modal">
+              <Upload :size="32" />
+              <p>Arrastra la portada aquí o haz clic</p>
+              <small>PNG, JPG, WEBP</small>
+            </div>
+            <input ref="inputPortadaCapitulo" type="file" accept="image/*" style="display:none" @change="onSelectPortadaCapitulo" />
+          </div>
+          <div v-if="subiendoPortadaCapitulo" class="indicador-carga">
+            <div class="spinner"></div>
+            <span>Subiendo portada...</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalCapituloPortada">Cancelar</button>
+          <button class="btn-primary" @click="guardarCapituloPortada" :disabled="subiendoPortadaCapitulo || !archivoPortadaCapituloSeleccionado">
+            {{ subiendoPortadaCapitulo ? 'Subiendo...' : 'Guardar portada' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL VIDEO CAPÍTULO -->
+    <div class="modal-overlay" v-if="modalCapituloVideoVisible" @click.self="cerrarModalCapituloVideo">
+      <div class="modal-contenido modal-archivo">
+        <div class="modal-header">
+          <h3>Subir vídeo - {{ capituloEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalCapituloVideo"><X :size="20" /></button>
+        </div>
+
+        <div class="modal-body">
+          <div
+            class="drop-zone-small"
+            :class="{ 'drag-over': arrastandoVideoCapitulo }"
+            @dragover.prevent="arrastandoVideoCapitulo = true"
+            @dragleave="arrastandoVideoCapitulo = false"
+            @drop.prevent="onDropVideoCapitulo"
+            @click="$refs.inputVideoCapitulo.click()"
+          >
+            <div v-if="previewVideoCapitulo" class="preview-portada-modal">
+              <p>{{ previewVideoCapitulo }}</p>
+            </div>
+            <div v-else class="drop-placeholder-modal">
+              <Upload :size="32" />
+              <p>Arrastra el vídeo aquí o haz clic</p>
+              <small>MP4, WEBM, MOV</small>
+            </div>
+            <input ref="inputVideoCapitulo" type="file" accept="video/*" style="display:none" @change="onSelectVideoCapitulo" />
+          </div>
+          <div v-if="subiendoVideoCapitulo" class="indicador-carga">
+            <div class="spinner"></div>
+            <span>Subiendo video...</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalCapituloVideo">Cancelar</button>
+          <button class="btn-primary" @click="guardarCapituloVideo" :disabled="subiendoVideoCapitulo || !archivoVideoCapituloSeleccionado">
+            {{ subiendoVideoCapitulo ? 'Subiendo...' : 'Guardar vídeo' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL PORTADA SERIE ==================== -->
+    <div class="modal-overlay" v-if="modalSeriePortadaVisible" @click.self="cerrarModalSeriePortada">
+      <div class="modal-contenido modal-archivo">
+        <div class="modal-header">
+          <h3>Subir portada - {{ serieEditando?.titulo }}</h3>
+          <button class="cerrar-modal" @click="cerrarModalSeriePortada"><X :size="20" /></button>
+        </div>
+
+        <div class="modal-body">
+          <div
+            class="drop-zone-small"
+            :class="{ 'drag-over': arrastandoPortadaSerie }"
+            @dragover.prevent="arrastandoPortadaSerie = true"
+            @dragleave="arrastandoPortadaSerie = false"
+            @drop.prevent="onDropPortadaSerie"
+            @click="$refs.inputPortadaSerie.click()"
+          >
+            <div v-if="previewPortadaSerie" class="preview-portada-modal">
+              <img :src="previewPortadaSerie" />
+              <p>Portada seleccionada</p>
+            </div>
+            <div v-else class="drop-placeholder-modal">
+              <Upload :size="32" />
+              <p>Arrastra la portada aquí o haz clic</p>
+              <small>PNG, JPG, WEBP</small>
+            </div>
+            <input ref="inputPortadaSerie" type="file" accept="image/*" style="display:none" @change="onSelectPortadaSerie" />
+          </div>
+          <div v-if="subiendoPortadaSerie" class="indicador-carga">
+            <div class="spinner"></div>
+            <span>Subiendo portada...</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="cerrarModalSeriePortada">Cancelar</button>
+          <button class="btn-primary" @click="guardarSeriePortada" :disabled="subiendoPortadaSerie || !archivoPortadaSerieSeleccionado">
+            {{ subiendoPortadaSerie ? 'Subiendo...' : 'Guardar portada' }}
           </button>
         </div>
       </div>
@@ -292,32 +580,56 @@ const auth = useAuthStore()
 
 const seccion = ref('peliculas')
 const peliculas = ref([])
+const series = ref([])
+const capitulos = ref([])
 const usuarios = ref([])
 const avatares = ref([])
 
 const modalPeliculaVisible = ref(false)
 const peliculaEditando = ref(null)
+const modalSerieVisible = ref(false)
+const serieEditando = ref(null)
+const modalCapitulosVisible = ref(false)
+const modalCapituloVisible = ref(false)
+const capituloEditando = ref(null)
 const guardando = ref(false)
 
 const modalPortadaVisible = ref(false)
 const modalVideoVisible = ref(false)
+const modalSeriePortadaVisible = ref(false)
+const modalCapituloPortadaVisible = ref(false)
+const modalCapituloVideoVisible = ref(false)
 
 const subiendoPortada = ref(false)
+const subiendoPortadaSerie = ref(false)
 const subiendoVideo = ref(false)
+const subiendoPortadaCapitulo = ref(false)
+const subiendoVideoCapitulo = ref(false)
 const subiendoAvatar = ref(false)
 const arrastandoPortada = ref(false)
+const arrastandoPortadaSerie = ref(false)
 const arrastandoVideo = ref(false)
+const arrastandoVideoCapitulo = ref(false)
 const arrastandoAvatar = ref(false)
 
 const inputPortada = ref(null)
 const inputVideo = ref(null)
 const inputAvatar = ref(null)
+const inputPortadaSerie = ref(null)
+const inputPortadaCapitulo = ref(null)
+const inputVideoCapitulo = ref(null)
 
 const archivoPortadaSeleccionado = ref(null)
+const archivoPortadaSerieSeleccionado = ref(null)
+const archivoPortadaCapituloSeleccionado = ref(null)
 const archivoVideoSeleccionado = ref(null)
+const archivoVideoCapituloSeleccionado = ref(null)
 
 const previewPortada = ref(null)
+const previewPortadaSerie = ref(null)
+const previewPortadaCapitulo = ref(null)
 const previewVideo = ref(null)
+const previewVideoCapitulo = ref(null)
 
 const generos = [
   'Acción', 'Aventura', 'Comedia', 'Drama', 'Terror',
@@ -325,6 +637,7 @@ const generos = [
 ]
 
 const generosSeleccionados = ref([])
+const generosSeleccionadosSerie = ref([])
 
 const form = ref({
   titulo: '',
@@ -336,12 +649,32 @@ const form = ref({
   videoUrl: '',
 })
 
+const formSerie = ref({
+  titulo: '',
+  creador: '',
+  sinopsis: '',
+  anio: new Date().getFullYear(),
+  genero: '',
+  imagenUrl: '',
+  videoUrl: '',
+})
+
+const formCapitulo = ref({
+  serieId: 0,
+  titulo: '',
+  numero: 1,
+  imagenUrl: '',
+  videoUrl: ''
+})
+
 onMounted(() => {
   if (!auth.usuario?.esAdmin) {
     router.push('/catalogo')
     return
   }
+
   cargarPeliculas()
+  cargarSeries()
   cargarUsuarios()
   cargarAvatares()
 })
@@ -352,6 +685,24 @@ async function cargarPeliculas() {
     peliculas.value = res.data
   } catch (error) {
     console.error('Error al cargar películas:', error)
+  }
+}
+
+async function cargarSeries() {
+  try {
+    const res = await axios.get('/api/Series')
+    series.value = res.data
+  } catch (error) {
+    console.error('Error al cargar series:', error)
+  }
+}
+
+async function cargarCapitulos(serieId) {
+  try {
+    const res = await axios.get(`/api/Capitulos/serie/${serieId}`)
+    capitulos.value = res.data
+  } catch (error) {
+    console.error('Error al cargar capítulos:', error)
   }
 }
 
@@ -383,6 +734,16 @@ function toggleGenero(g) {
     generosSeleccionados.value.splice(idx, 1)
   }
   form.value.genero = generosSeleccionados.value.join(', ')
+}
+
+function toggleGeneroSerie(g) {
+  const idx = generosSeleccionadosSerie.value.indexOf(g)
+  if (idx === -1) {
+    generosSeleccionadosSerie.value.push(g)
+  } else {
+    generosSeleccionadosSerie.value.splice(idx, 1)
+  }
+  formSerie.value.genero = generosSeleccionadosSerie.value.join(', ')
 }
 
 // ---- MODAL PELÍCULA ----
@@ -473,6 +834,352 @@ async function eliminarPelicula(id) {
     await cargarPeliculas()
   } catch (error) {
     console.error('Error al eliminar película:', error)
+  }
+}
+
+// ---- MODAL SERIE ----
+
+function abrirModalSerie(serie) {
+  serieEditando.value = serie
+  if (serie) {
+    formSerie.value = {
+      titulo: serie.titulo,
+      creador: serie.creador,
+      sinopsis: serie.sinopsis,
+      anio: serie.anio,
+      genero: serie.genero || '',
+      imagenUrl: serie.imagenUrl || '',
+      videoUrl: serie.videoUrl || '',
+    }
+    generosSeleccionadosSerie.value = serie.genero
+      ? serie.genero.split(', ').filter(Boolean)
+      : []
+  } else {
+    formSerie.value = {
+      titulo: '', creador: '', sinopsis: '',
+      anio: new Date().getFullYear(),
+      genero: '', imagenUrl: '', videoUrl: '',
+    }
+    generosSeleccionadosSerie.value = []
+  }
+  modalSerieVisible.value = true
+}
+
+function cerrarModalSerie() {
+  modalSerieVisible.value = false
+  serieEditando.value = null
+  generosSeleccionadosSerie.value = []
+}
+
+async function guardarSerie() {
+  if (!formSerie.value.titulo || !formSerie.value.creador || !formSerie.value.anio) {
+    alert('Por favor rellena título, creador y año')
+    return
+  }
+  guardando.value = true
+  try {
+    const anio = parseInt(formSerie.value.anio)
+    if (isNaN(anio)) {
+      alert('El año debe ser un número válido')
+      guardando.value = false
+      return
+    }
+
+    let datos = {
+      titulo: formSerie.value.titulo,
+      creador: formSerie.value.creador,
+      anio: anio,
+      sinopsis: formSerie.value.sinopsis || '',
+      genero: formSerie.value.genero || ''
+    }
+
+    if (serieEditando.value) {
+      datos.imagenUrl = formSerie.value.imagenUrl || ''
+      datos.videoUrl = formSerie.value.videoUrl || ''
+      await axios.put(`/api/Series/${serieEditando.value.id}`, {
+        id: serieEditando.value.id,
+        ...datos
+      })
+      alert('Serie actualizada correctamente')
+    } else {
+      const res = await axios.post('/api/Series', datos)
+      serieEditando.value = res.data
+      alert('Serie creada correctamente. Ahora puedes subir portada.')
+    }
+    await cargarSeries()
+    cerrarModalSerie()
+  } catch (error) {
+    console.error('Error al guardar serie:', error)
+    alert(`Error al guardar serie: ${error.response?.data?.message || error.message}`)
+  } finally {
+    guardando.value = false
+  }
+}
+
+async function eliminarSerie(id) {
+  if (!confirm('¿Seguro que quieres eliminar esta serie?')) return
+  try {
+    await axios.delete(`/api/Series/${id}`)
+    await cargarSeries()
+  } catch (error) {
+    console.error('Error al eliminar serie:', error)
+  }
+}
+
+function abrirModalCapitulos(serie) {
+  serieEditando.value = serie
+  formCapitulo.value.serieId = serie.id
+  formCapitulo.value.titulo = ''
+  formCapitulo.value.numero = capitulos.value.length + 1
+  modalCapitulosVisible.value = true
+  cargarCapitulos(serie.id)
+}
+
+function cerrarModalCapitulos() {
+  modalCapitulosVisible.value = false
+  serieEditando.value = null
+  capitulos.value = []
+}
+
+async function crearCapitulo() {
+  if (!formCapitulo.value.titulo || !formCapitulo.value.numero) {
+    alert('Rellena título y número de capítulo')
+    return
+  }
+  try {
+    await axios.post('/api/Capitulos', {
+      serieId: formCapitulo.value.serieId,
+      titulo: formCapitulo.value.titulo,
+      numero: parseInt(formCapitulo.value.numero),
+      imagenUrl: '',
+      videoUrl: ''
+    })
+    await cargarCapitulos(formCapitulo.value.serieId)
+    formCapitulo.value.titulo = ''
+    formCapitulo.value.numero = capitulos.value.length + 2
+    alert('Capítulo creado correctamente')
+  } catch (error) {
+    console.error('Error al crear capítulo:', error)
+    alert(`Error al crear capítulo: ${error.response?.data?.message || error.message}`)
+  }
+}
+
+async function eliminarCapitulo(id) {
+  if (!confirm('¿Seguro que quieres eliminar este capítulo?')) return
+  try {
+    await axios.delete(`/api/Capitulos/${id}`)
+    if (serieEditando.value) {
+      await cargarCapitulos(serieEditando.value.id)
+    }
+  } catch (error) {
+    console.error('Error al eliminar capítulo:', error)
+  }
+}
+
+function abrirModalCapituloPortada(capitulo) {
+  capituloEditando.value = capitulo
+  previewPortadaCapitulo.value = null
+  archivoPortadaCapituloSeleccionado.value = null
+  modalCapituloPortadaVisible.value = true
+}
+
+function cerrarModalCapituloPortada() {
+  modalCapituloPortadaVisible.value = false
+  archivoPortadaCapituloSeleccionado.value = null
+  previewPortadaCapitulo.value = null
+}
+
+async function guardarCapituloPortada() {
+  if (!archivoPortadaCapituloSeleccionado.value) {
+    alert('Selecciona una imagen primero')
+    return
+  }
+  await subirPortadaCapitulo(archivoPortadaCapituloSeleccionado.value)
+  archivoPortadaCapituloSeleccionado.value = null
+  previewPortadaCapitulo.value = null
+  if (serieEditando.value) {
+    await cargarCapitulos(serieEditando.value.id)
+  }
+  cerrarModalCapituloPortada()
+  alert('Portada de capítulo subida correctamente')
+}
+
+async function subirPortadaCapitulo(archivo) {
+  if (!capituloEditando.value || !archivo) {
+    alert('Error: capítulo no encontrado o archivo no válido')
+    return
+  }
+  subiendoPortadaCapitulo.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    const res = await axios.post(`/api/Capitulos/${capituloEditando.value.id}/upload-portada`, fd)
+    formCapitulo.value.imagenUrl = res.data.url
+  } catch (error) {
+    console.error('Error al subir portada de capítulo:', error)
+    alert(`Error al subir portada de capítulo: ${error.response?.data?.message || error.message}`)
+  } finally {
+    subiendoPortadaCapitulo.value = false
+    arrastandoPortadaCapitulo.value = false
+  }
+}
+
+function onDropPortadaCapitulo(e) {
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) {
+    archivoPortadaCapituloSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortadaCapitulo.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
+  }
+}
+
+function onSelectPortadaCapitulo(e) {
+  const archivo = e.target.files[0]
+  if (archivo) {
+    archivoPortadaCapituloSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortadaCapitulo.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
+  }
+}
+
+function abrirModalCapituloVideo(capitulo) {
+  capituloEditando.value = capitulo
+  previewVideoCapitulo.value = null
+  archivoVideoCapituloSeleccionado.value = null
+  modalCapituloVideoVisible.value = true
+}
+
+function cerrarModalCapituloVideo() {
+  modalCapituloVideoVisible.value = false
+  archivoVideoCapituloSeleccionado.value = null
+  previewVideoCapitulo.value = null
+}
+
+async function guardarCapituloVideo() {
+  if (!archivoVideoCapituloSeleccionado.value) {
+    alert('Selecciona un video primero')
+    return
+  }
+  await subirVideoCapitulo(archivoVideoCapituloSeleccionado.value)
+  archivoVideoCapituloSeleccionado.value = null
+  previewVideoCapitulo.value = null
+  if (serieEditando.value) {
+    await cargarCapitulos(serieEditando.value.id)
+  }
+  cerrarModalCapituloVideo()
+  alert('Video de capítulo subido correctamente')
+}
+
+async function subirVideoCapitulo(archivo) {
+  if (!capituloEditando.value || !archivo) {
+    alert('Error: capítulo no encontrado o archivo no válido')
+    return
+  }
+  subiendoVideoCapitulo.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    const res = await axios.post(`/api/Capitulos/${capituloEditando.value.id}/upload-video`, fd)
+    formCapitulo.value.videoUrl = res.data.url
+  } catch (error) {
+    console.error('Error al subir video de capítulo:', error)
+    alert(`Error al subir video de capítulo: ${error.response?.data?.message || error.message}`)
+  } finally {
+    subiendoVideoCapitulo.value = false
+    arrastandoVideoCapitulo.value = false
+  }
+}
+
+function onDropVideoCapitulo(e) {
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) {
+    archivoVideoCapituloSeleccionado.value = archivo
+    previewVideoCapitulo.value = `Video: ${archivo.name}`
+  }
+}
+
+function onSelectVideoCapitulo(e) {
+  const archivo = e.target.files[0]
+  if (archivo) {
+    archivoVideoCapituloSeleccionado.value = archivo
+    previewVideoCapitulo.value = `Video: ${archivo.name}`
+  }
+}
+
+function abrirModalSeriePortada(serie) {
+  serieEditando.value = serie
+  previewPortadaSerie.value = null
+  archivoPortadaSerieSeleccionado.value = null
+  modalSeriePortadaVisible.value = true
+}
+
+function cerrarModalSeriePortada() {
+  modalSeriePortadaVisible.value = false
+  archivoPortadaSerieSeleccionado.value = null
+  previewPortadaSerie.value = null
+}
+
+async function guardarSeriePortada() {
+  if (!archivoPortadaSerieSeleccionado.value) {
+    alert('Selecciona una imagen primero')
+    return
+  }
+  await subirPortadaSerie(archivoPortadaSerieSeleccionado.value)
+  archivoPortadaSerieSeleccionado.value = null
+  previewPortadaSerie.value = null
+  await cargarSeries()
+  cerrarModalSeriePortada()
+  alert('Portada de serie subida correctamente')
+}
+
+async function subirPortadaSerie(archivo) {
+  if (!serieEditando.value || !archivo) {
+    alert('Error: Serie no encontrada o archivo no válido')
+    return
+  }
+  subiendoPortadaSerie.value = true
+  try {
+    const fd = new FormData()
+    fd.append('Archivo', archivo)
+    const res = await axios.post(`/api/Series/${serieEditando.value.id}/upload-portada`, fd)
+    formSerie.value.imagenUrl = res.data.url
+  } catch (error) {
+    console.error('Error al subir portada de serie:', error)
+    alert(`Error al subir portada de serie: ${error.response?.data?.message || error.message}`)
+  } finally {
+    subiendoPortadaSerie.value = false
+    arrastandoPortadaSerie.value = false
+  }
+}
+
+function onDropPortadaSerie(e) {
+  if (!serieEditando.value) return
+  const archivo = e.dataTransfer.files[0]
+  if (archivo) {
+    archivoPortadaSerieSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortadaSerie.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
+  }
+}
+
+function onSelectPortadaSerie(e) {
+  const archivo = e.target.files[0]
+  if (archivo) {
+    archivoPortadaSerieSeleccionado.value = archivo
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      previewPortadaSerie.value = event.target.result
+    }
+    reader.readAsDataURL(archivo)
   }
 }
 
@@ -1084,5 +1791,33 @@ async function eliminarUsuario(id) {
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid #eee;
+}
+
+/* INDICADOR DE CARGA */
+.indicador-carga {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f0f0f0;
+  border-radius: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #E50914;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
