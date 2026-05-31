@@ -1,7 +1,7 @@
 <template>
   <div class="catalogo-pantalla">
 
-    <!-- NAVBAR -->
+    <!-- NAVEGACIÓN -->
     <nav class="navegacion" :class="{ scrolled: scrolled }">
       <div class="nav-lado">
         <span class="marca-nav">CINEFLIX</span>
@@ -12,12 +12,9 @@
         </div>
       </div>
       <div class="nav-lado-derecho">
-        <!-- BÚSQUEDA -->
         <button class="btn-buscar" @click="toggleBuscar">
           <Search :size="20" />
         </button>
-
-        <!-- AVATAR PERFIL -->
         <div class="desplegable-perfil" ref="dropdownRef">
           <div
             class="avatar-nav"
@@ -27,15 +24,12 @@
           <div class="menu-perfil" :class="{ active: menuPerfilVisible }">
             <div class="encabezado-menu">{{ auth.perfilActivo?.nombre }}</div>
             <div class="divisor-menu"></div>
-            
             <div class="opcion-menu" @click="cambiarPerfil">
               <UserCircle :size="16" /> Cambiar perfil
             </div>
-
             <div class="opcion-menu" v-if="auth.usuario?.esAdmin" @click="irAdmin">
               <Settings :size="16" /> Panel de control
             </div>
-
             <div class="divisor-menu"></div>
             <div class="opcion-menu" @click="cerrarSesion">
               <LogOut :size="16" /> Cerrar sesión
@@ -86,10 +80,12 @@
     <!-- HERO -->
     <div class="hero" v-if="heroItem"
       :style="heroItem.imagenUrl
-        ? { backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), #141414), url(http://localhost:5097${heroItem.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+        ? { backgroundImage: `linear-gradient(to bottom, rgba(10,0,5,0.2) 0%, rgba(10,0,5,0.7) 60%, #0a0005 100%), url(http://localhost:5097${heroItem.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
         : { background: colorAleatorio(heroItem.id) }"
     >
-      <div class="hero-badge">★ DESTACADO HOY</div>
+      <div class="hero-eyebrow">
+        <span class="hero-badge">★ DESTACADO HOY</span>
+      </div>
       <div class="hero-title">{{ heroItem.titulo }}</div>
       <div class="hero-desc">{{ heroItem.sinopsis }} · {{ heroItem.anio }}</div>
       <div class="hero-btns">
@@ -98,7 +94,7 @@
       </div>
     </div>
     <div class="hero hero-vacio" v-else>
-      <div class="hero-badge">★ CINEFLIX</div>
+      <div class="hero-eyebrow"><span class="hero-badge">★ CINEFLIX</span></div>
       <div class="hero-title">Bienvenido</div>
       <div class="hero-desc">Pronto habrá contenido disponible.</div>
     </div>
@@ -109,8 +105,8 @@
       <!-- PELÍCULAS -->
       <div class="fila" v-if="seccionActiva === 'inicio' || seccionActiva === 'peliculas'">
         <div class="titulo-fila">
-          Películas
-          <span @click="seccionActiva = 'peliculas'">Ver todo →</span>
+          <span class="titulo-fila-texto">Películas</span>
+          <span class="ver-todo" @click="seccionActiva = 'peliculas'">Ver todo →</span>
         </div>
         <div class="tarjetas-deslizar">
           <div
@@ -126,6 +122,9 @@
                 : { background: colorAleatorio(pelicula.id) }"
             >
               <Film v-if="!pelicula.imagenUrl" :size="40" />
+              <div class="tarjeta-hover-overlay">
+                <Play :size="28" class="play-icon-hover" />
+              </div>
             </div>
             <div class="overlay-tarjeta">{{ pelicula.titulo }}</div>
           </div>
@@ -136,8 +135,8 @@
       <!-- SERIES -->
       <div class="fila" v-if="seccionActiva === 'inicio' || seccionActiva === 'series'">
         <div class="titulo-fila">
-          Series
-          <span @click="seccionActiva = 'series'">Ver todo →</span>
+          <span class="titulo-fila-texto">Series</span>
+          <span class="ver-todo" @click="seccionActiva = 'series'">Ver todo →</span>
         </div>
         <div class="tarjetas-deslizar">
           <div
@@ -153,6 +152,9 @@
                 : { background: colorAleatorio(serie.id) }"
             >
               <Tv v-if="!serie.imagenUrl" :size="40" />
+              <div class="tarjeta-hover-overlay">
+                <Play :size="28" class="play-icon-hover" />
+              </div>
             </div>
             <div class="overlay-tarjeta">{{ serie.titulo }}</div>
           </div>
@@ -175,7 +177,7 @@
         <div class="modal-sin-video" v-else-if="itemSeleccionado?.imagenUrl"
           :style="{ backgroundImage: `url(http://localhost:5097${itemSeleccionado.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }"
         ></div>
-        <div class="modal-sin-video" v-else :style="{ background: colorAleatorio(itemSeleccionado?.id) }">
+        <div class="modal-sin-video modal-sin-video--fallback" v-else :style="{ background: colorAleatorio(itemSeleccionado?.id) }">
           <Film v-if="itemSeleccionado?.tipo === 'pelicula'" :size="80" />
           <Tv v-else :size="80" />
         </div>
@@ -204,7 +206,7 @@
                 <div class="portada-cap"
                   :style="cap.imagenUrl
                     ? { backgroundImage: `url(http://localhost:5097${cap.imagenUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                    : { background: '#333' }"
+                    : { background: '#1a0010' }"
                 >
                   <div class="numero-overlay">{{ cap.numero }}</div>
                 </div>
@@ -258,7 +260,6 @@ const inputBuscar = ref(null)
 const dropdownRef = ref(null)
 const videoRef = ref(null)
 
-// Avatar del perfil activo
 const avatarPerfil = computed(() => {
   const perfil = auth.perfilActivo || JSON.parse(localStorage.getItem('perfilActivo'))
   if (!perfil?.fotoUrl) return ''
@@ -266,7 +267,6 @@ const avatarPerfil = computed(() => {
   return `http://localhost:5097${perfil.fotoUrl}`
 })
 
-// Video seleccionado (capítulo o película)
 const videoSeleccionado = computed(() => {
   if (itemSeleccionado.value?.tipo === 'serie' && capituloSeleccionado.value) {
     return capituloSeleccionado.value.videoUrl
@@ -276,7 +276,6 @@ const videoSeleccionado = computed(() => {
   return null
 })
 
-// Hero — primera película o serie disponible
 const heroItem = computed(() => {
   const todo = [
     ...peliculas.value.map(p => ({ ...p, tipo: 'pelicula' })),
@@ -285,67 +284,42 @@ const heroItem = computed(() => {
   return todo.length > 0 ? todo[0] : null
 })
 
-// Búsqueda
 const resultadosBuscar = computed(() => {
   if (queryBuscar.value.length < 2) return []
   const q = queryBuscar.value.toLowerCase()
-  const peli = peliculas.value
-    .filter(p => p.titulo.toLowerCase().includes(q))
-    .map(p => ({ ...p, tipo: 'pelicula' }))
-  const ser = series.value
-    .filter(s => s.titulo.toLowerCase().includes(q))
-    .map(s => ({ ...s, tipo: 'serie' }))
+  const peli = peliculas.value.filter(p => p.titulo.toLowerCase().includes(q)).map(p => ({ ...p, tipo: 'pelicula' }))
+  const ser = series.value.filter(s => s.titulo.toLowerCase().includes(q)).map(s => ({ ...s, tipo: 'serie' }))
   return [...peli, ...ser]
 })
 
-// Color de fondo basado en el ID
 function colorAleatorio(id) {
   const colores = [
-    '#0f3460', '#3d0000', '#1a2a1a', '#1a0d2e',
-    '#0a1628', '#002244', '#3d1200', '#1a1a0a',
-    '#0d0d1a', '#0a1a0a', '#1a0d00', '#001a1a',
+    '#1a0010', '#0f0018', '#0a0a0a', '#1a000a',
+    '#0d0005', '#150010', '#0a000f', '#100005',
+    '#0d0d0d', '#120008', '#0a0012', '#180010',
   ]
   return colores[(id || 0) % colores.length]
 }
 
-// Scroll navbar
-function onScroll() {
-  scrolled.value = window.scrollY > 50
-}
-
-// Menú perfil
-function toggleMenuPerfil() {
-  menuPerfilVisible.value = !menuPerfilVisible.value
-}
-
+function onScroll() { scrolled.value = window.scrollY > 50 }
+function toggleMenuPerfil() { menuPerfilVisible.value = !menuPerfilVisible.value }
 function cerrarMenuFuera(e) {
-  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
-    menuPerfilVisible.value = false
-  }
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) menuPerfilVisible.value = false
 }
 
-// Búsqueda
 async function toggleBuscar() {
   buscarVisible.value = !buscarVisible.value
-  if (buscarVisible.value) {
-    await nextTick()
-    inputBuscar.value?.focus()
-  } else {
-    queryBuscar.value = ''
-  }
+  if (buscarVisible.value) { await nextTick(); inputBuscar.value?.focus() }
+  else queryBuscar.value = ''
 }
 
-// Modal
 async function abrirModal(item) {
   itemSeleccionado.value = item
   modalVisible.value = true
   buscarVisible.value = false
-  
   if (item.tipo === 'serie') {
     await cargarCapitulos(item.id)
-    if (capitulos.value.length > 0) {
-      capituloSeleccionado.value = capitulos.value[0]
-    }
+    if (capitulos.value.length > 0) capituloSeleccionado.value = capitulos.value[0]
   } else {
     capitulos.value = []
     capituloSeleccionado.value = null
@@ -356,20 +330,16 @@ async function cargarCapitulos(serieId) {
   try {
     const res = await axios.get(`/api/Capitulos/serie/${serieId}`)
     capitulos.value = res.data
-  } catch (error) {
-    console.error('Error al cargar capítulos:', error)
-  }
+  } catch (error) { console.error('Error al cargar capítulos:', error) }
 }
 
-function seleccionarCapitulo(capitulo) {
-  capituloSeleccionado.value = capitulo
-}
+function seleccionarCapitulo(capitulo) { capituloSeleccionado.value = capitulo }
 
-// Watcher para actualizar el video cuando cambia
-watch(videoSeleccionado, async (nuevoVideo) => {
-  if (nuevoVideo && videoRef.value) {
+watch(capituloSeleccionado, async (nuevo) => {
+  if (nuevo && videoRef.value) {
     await nextTick()
     videoRef.value.load()
+    videoRef.value.play().catch(() => {})
   }
 })
 
@@ -378,27 +348,14 @@ function cerrarModal() {
   itemSeleccionado.value = null
   capituloSeleccionado.value = null
   capitulos.value = []
-  if (videoRef.value) {
-    videoRef.value.pause()
-    videoRef.value.currentTime = 0
-  }
+  if (videoRef.value) { videoRef.value.pause(); videoRef.value.currentTime = 0 }
 }
 
 function reproducir() {
-  if (!videoRef.value) {
-    alert('Video no disponible')
-    return
-  }
-  
-  // Asegurar que el video está listo
+  if (!videoRef.value) { alert('Video no disponible'); return }
   if (videoRef.value.readyState >= 2) {
-    // Metadata cargada
-    videoRef.value.play().catch(err => {
-      console.error('Error al reproducir:', err)
-      alert('No se pudo reproducir el video')
-    })
+    videoRef.value.play().catch(err => { console.error('Error al reproducir:', err); alert('No se pudo reproducir el video') })
   } else {
-    // Esperar a que se cargue
     const onCanPlay = () => {
       videoRef.value.play().catch(err => console.error('Error:', err))
       videoRef.value.removeEventListener('canplay', onCanPlay)
@@ -407,27 +364,16 @@ function reproducir() {
   }
 }
 
-// Cerrar sesión
-function cerrarSesion() {
-  auth.logout()
-  router.push('/login')
-}
+function cerrarSesion() { auth.logout(); router.push('/login') }
 
-// Cargar datos
 async function cargarDatos() {
   try {
-    const [resPelis, resSeries] = await Promise.all([
-      axios.get('/api/Peliculas'),
-      axios.get('/api/Series'),
-    ])
+    const [resPelis, resSeries] = await Promise.all([axios.get('/api/Peliculas'), axios.get('/api/Series')])
     peliculas.value = resPelis.data
     series.value = resSeries.data
-  } catch (error) {
-    console.error('Error al cargar datos:', error)
-  }
+  } catch (error) { console.error('Error al cargar datos:', error) }
 }
 
-// Escape para cerrar modales
 function onKeydown(e) {
   if (e.key === 'Escape') {
     if (modalVisible.value) cerrarModal()
@@ -435,21 +381,11 @@ function onKeydown(e) {
   }
 }
 
-function cambiarPerfil() {
-  menuPerfilVisible.value = false
-  router.push('/perfiles')
-}
-
-function irAdmin() {
-  menuPerfilVisible.value = false
-  router.push('/admin')
-}
+function cambiarPerfil() { menuPerfilVisible.value = false; router.push('/perfiles') }
+function irAdmin() { menuPerfilVisible.value = false; router.push('/admin') }
 
 onMounted(() => {
-  if (!auth.usuario) {
-    router.push('/login')
-    return
-  }
+  if (!auth.usuario) { router.push('/login'); return }
   cargarDatos()
   window.addEventListener('scroll', onScroll)
   window.addEventListener('click', cerrarMenuFuera)
@@ -464,79 +400,140 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* =============================================
+   VARIABLES & BASE
+   ============================================= */
 .catalogo-pantalla {
-  background: #141414;
-  color: #fff;
+  --crimson: #AD004F;
+  --crimson-bright: #D4005F;
+  --crimson-dark: #7A0037;
+  --crimson-glow: rgba(173, 0, 79, 0.25);
+  --crimson-subtle: rgba(173, 0, 79, 0.08);
+  --bg-base: #0a0005;
+  --bg-surface: #120009;
+  --bg-card: #180010;
+  --bg-elevated: #200015;
+  --bg-overlay: rgba(10, 0, 5, 0.96);
+  --text-primary: #f5eef0;
+  --text-secondary: #b09aa0;
+  --text-muted: #6e5560;
+  --border-subtle: rgba(173, 0, 79, 0.15);
+  --border-medium: rgba(173, 0, 79, 0.3);
+  --font-display: 'Georgia', 'Times New Roman', serif;
+  --font-body: 'Trebuchet MS', 'Segoe UI', sans-serif;
+
+  background: var(--bg-base);
+  color: var(--text-primary);
   min-height: 100vh;
-  font-family: sans-serif;
+  font-family: var(--font-body);
 }
 
-/* NAVBAR */
+/* NAVEGACIÓN */
+
 .navegacion {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1.25rem 3rem;
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 100;
-  transition: background 0.3s;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+  transition: background 0.4s ease, backdrop-filter 0.4s ease;
+  background: linear-gradient(to bottom, rgba(10,0,5,0.9) 0%, transparent 100%);
   box-sizing: border-box;
 }
 
 .navegacion.scrolled {
-  background: #141414;
+  background: rgba(10, 0, 5, 0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .nav-lado {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
 .nav-lado-derecho {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .marca-nav {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #E50914;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--crimson);
   cursor: pointer;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  position: relative;
+}
+
+.marca-nav::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--crimson);
+  opacity: 0.4;
 }
 
 .enlaces-nav {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .enlace-nav {
-  color: #e5e5e5;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
   text-decoration: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
 }
 
-.enlace-nav:hover,
+.enlace-nav:hover {
+  color: var(--text-primary);
+}
+
 .enlace-nav.active {
-  color: white;
-  font-weight: 600;
+  color: var(--text-primary);
+  position: relative;
+}
+
+.enlace-nav.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--crimson);
+  border-radius: 1px;
 }
 
 .btn-buscar {
   background: none;
   border: none;
-  color: white;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.4rem;
   display: flex;
   align-items: center;
+  transition: color 0.2s;
+  border-radius: 50%;
+}
+
+.btn-buscar:hover {
+  color: var(--text-primary);
 }
 
 .desplegable-perfil {
@@ -544,260 +541,344 @@ onUnmounted(() => {
 }
 
 .avatar-nav {
-  width: 34px;
-  height: 34px;
-  border-radius: 6px;
-  background: #333;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
   background-size: cover;
   background-position: center;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, transform 0.2s;
 }
 
 .avatar-nav:hover {
-  border-color: #fff;
+  border-color: var(--crimson);
+  transform: scale(1.05);
 }
 
 .menu-perfil {
   display: none;
   position: absolute;
-  top: calc(100% + 0.5rem);
+  top: calc(100% + 0.75rem);
   right: 0;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  min-width: 200px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  min-width: 210px;
   padding: 0.5rem 0;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7), 0 0 0 1px var(--border-subtle);
 }
 
-.menu-perfil.active {
-  display: block;
-}
+.menu-perfil.active { display: block; }
 
 .encabezado-menu {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  color: #fff;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-primary);
   font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .divisor-menu {
   height: 1px;
-  background: #333;
-  margin: 0.4rem 0;
+  background: var(--border-subtle);
+  margin: 0.3rem 0;
 }
 
 .opcion-menu {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1.1rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
 }
 
 .opcion-menu:hover {
-  background: #333;
+  background: var(--crimson-subtle);
+  color: var(--text-primary);
 }
 
-/* BÚSQUEDA */
+/* MODAL BÚSQUEDA */
+
 .modal-buscar {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.95);
+  background: var(--bg-overlay);
+  backdrop-filter: blur(16px);
   z-index: 200;
-  padding: 2rem;
+  padding: 4rem 2rem 2rem;
 }
 
-.modal-buscar.active {
-  display: block;
-}
+.modal-buscar.active { display: block; }
 
 .contenedor-buscar {
-  max-width: 600px;
+  max-width: 580px;
   margin: 0 auto;
   position: relative;
 }
 
 .cerrar-buscar {
   position: absolute;
-  top: -10px;
+  top: -2.5rem;
   right: 0;
   background: none;
   border: none;
-  color: white;
-  font-size: 2rem;
+  color: var(--text-secondary);
   cursor: pointer;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
 }
+
+.cerrar-buscar:hover { color: var(--text-primary); }
 
 .envoltorio-input {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #333;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
   margin-bottom: 1.5rem;
+  transition: border-color 0.2s;
 }
 
-.icono-buscar { color: #999; }
+.envoltorio-input:focus-within {
+  border-color: var(--crimson);
+  box-shadow: 0 0 0 3px var(--crimson-glow);
+}
+
+.icono-buscar { color: var(--text-muted); flex-shrink: 0; }
 
 .envoltorio-input input {
   flex: 1;
   background: none;
   border: none;
-  color: white;
-  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-size: 1rem;
   outline: none;
-  font-family: inherit;
+  font-family: var(--font-body);
 }
 
+.envoltorio-input input::placeholder { color: var(--text-muted); }
+
 .resultados-buscar {
-  max-height: 60vh;
+  max-height: 55vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
 }
 
 .item-resultado {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.75rem;
+  padding: 0.75rem 0.9rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
-.item-resultado:hover { background: #333; }
+.item-resultado:hover {
+  background: var(--crimson-subtle);
+}
 
 .icono-resultado {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
-.info-resultado h4 { margin: 0 0 0.25rem; font-size: 1rem; }
-.info-resultado p { margin: 0; font-size: 0.85rem; color: #999; }
+.info-resultado h4 { margin: 0 0 0.2rem; font-size: 0.95rem; color: var(--text-primary); }
+.info-resultado p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
 
 .sin-resultados {
   text-align: center;
-  color: #666;
+  color: var(--text-muted);
   padding: 2rem;
+  font-size: 0.9rem;
 }
 
 /* HERO */
+
 .hero {
-  padding: 8rem 2rem 4rem;
-  min-height: 60vh;
+  padding: 9rem 3rem 5rem;
+  min-height: 65vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  max-width: 800px;
+  max-width: 860px;
   position: relative;
 }
 
 .hero-vacio {
-  background: linear-gradient(135deg, #1a1a2e, #16213e) !important;
+  background: linear-gradient(135deg, #0a0005, #1a0010) !important;
+}
+
+.hero-eyebrow {
+  margin-bottom: 1.25rem;
 }
 
 .hero-badge {
-  display: inline-block;
-  background: #E50914;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  width: fit-content;
-  margin-bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--crimson);
+  color: rgba(255,255,255,0.95);
+  padding: 0.3rem 0.9rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .hero-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: bold;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.5vw, 4rem);
+  font-weight: 700;
   margin: 0 0 1rem;
-  line-height: 1.1;
-  text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+  line-height: 1.05;
+  color: var(--text-primary);
+  text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+  letter-spacing: -0.5px;
 }
 
 .hero-desc {
-  font-size: 1rem;
-  color: #ccc;
-  max-width: 500px;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  max-width: 460px;
+  margin-bottom: 2rem;
+  line-height: 1.7;
 }
 
-.hero-btns { display: flex; gap: 1rem; }
+.hero-btns { display: flex; gap: 0.875rem; }
 
 .btn-play, .btn-info {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
 }
 
-.btn-play { background: white; color: black; }
-.btn-play:hover { background: #e5e5e5; }
-.btn-info { background: rgba(109,109,110,0.7); color: white; }
-.btn-info:hover { background: rgba(109,109,110,0.5); }
+.btn-play {
+  background: var(--crimson);
+  color: white;
+}
+
+.btn-play:hover {
+  background: var(--crimson-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--crimson-glow);
+}
+
+.btn-info {
+  background: rgba(245, 238, 240, 0.1);
+  color: var(--text-primary);
+  border: 1px solid rgba(245, 238, 240, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.btn-info:hover {
+  background: rgba(245, 238, 240, 0.18);
+  border-color: rgba(245, 238, 240, 0.35);
+}
 
 /* CATÁLOGO */
-.catalogo { padding: 2rem; }
 
-.fila { margin-bottom: 2.5rem; }
+.catalogo {
+  padding: 2.5rem 3rem 4rem;
+}
+
+.fila { margin-bottom: 3rem; }
 
 .titulo-fila {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  margin-bottom: 1.25rem;
 }
 
-.titulo-fila span {
-  font-size: 0.9rem;
-  color: #54b9c5;
+.titulo-fila-texto {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.titulo-fila-texto::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  background: var(--crimson);
+  border-radius: 2px;
+}
+
+.ver-todo {
+  font-size: 0.8rem;
+  color: var(--crimson);
   cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: color 0.2s, letter-spacing 0.2s;
 }
 
-.titulo-fila span:hover { text-decoration: underline; }
+.ver-todo:hover {
+  color: var(--crimson-bright);
+  letter-spacing: 1px;
+}
 
 .tarjetas-deslizar {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.875rem;
   overflow-x: auto;
   padding-bottom: 1rem;
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: var(--border-medium) transparent;
 }
 
-.tarjetas-deslizar::-webkit-scrollbar { height: 6px; }
-.tarjetas-deslizar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+.tarjetas-deslizar::-webkit-scrollbar { height: 4px; }
+.tarjetas-deslizar::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 2px; }
 
 .tarjeta {
   flex: 0 0 auto;
-  width: 180px;
+  width: 175px;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
 }
 
-.tarjeta:hover { transform: scale(1.05); }
+.tarjeta:hover {
+  transform: scale(1.06) translateY(-4px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.6), 0 0 0 1px var(--border-medium);
+}
 
 .fondo-tarjeta {
   width: 100%;
@@ -805,31 +886,62 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  color: var(--text-muted);
+  position: relative;
+  overflow: hidden;
+}
+
+.tarjeta-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(173, 0, 79, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.tarjeta:hover .tarjeta-hover-overlay {
+  opacity: 1;
+}
+
+.play-icon-hover {
+  color: white;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
 }
 
 .overlay-tarjeta {
-  padding: 0.75rem;
-  background: #1a1a1a;
-  font-size: 0.85rem;
+  padding: 0.7rem 0.75rem;
+  background: var(--bg-card);
+  font-size: 0.8rem;
   font-weight: 500;
-  text-align: center;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-top: 1px solid var(--border-subtle);
+  transition: color 0.2s;
+}
+
+.tarjeta:hover .overlay-tarjeta {
+  color: var(--text-primary);
 }
 
 .fila-vacia {
-  color: #666;
-  font-size: 0.9rem;
-  padding: 1rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 1.5rem 0;
+  font-style: italic;
 }
 
 /* MODAL */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(5, 0, 10, 0.9);
+  backdrop-filter: blur(8px);
   z-index: 300;
   display: flex;
   align-items: center;
@@ -838,23 +950,26 @@ onUnmounted(() => {
 }
 
 .modal-contenido {
-  background: #1a1a1a;
-  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
   width: 100%;
-  max-width: 700px;
+  max-width: 720px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px var(--border-subtle);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
 }
 
 .cerrar-modal {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  background: rgba(0,0,0,0.6);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
+  background: rgba(10, 0, 5, 0.7);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: 50%;
   width: 36px;
@@ -863,205 +978,243 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 10;
-  line-height: 1;
+  transition: background 0.2s, color 0.2s;
 }
 
-.cerrar-modal:hover { background: rgba(0,0,0,0.9); }
+.cerrar-modal:hover {
+  background: var(--crimson);
+  color: white;
+  border-color: var(--crimson);
+}
 
 .modal-video video {
   width: 100%;
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
   display: block;
   max-height: 400px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #000;
 }
 
 .modal-sin-video {
   width: 100%;
-  height: 250px;
+  height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5rem;
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
+  color: var(--text-muted);
+}
+
+.modal-sin-video--fallback {
+  position: relative;
+}
+
+.modal-sin-video--fallback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, var(--bg-surface) 100%);
+  border-radius: 14px 14px 0 0;
 }
 
 .modal-info {
-  padding: 1.5rem;
+  padding: 1.75rem 2rem 2rem;
 }
 
 .modal-badge {
   display: inline-block;
-  background: #E50914;
-  color: white;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
+  background: var(--crimson-subtle);
+  color: var(--crimson-bright);
+  border: 1px solid var(--border-medium);
+  padding: 0.2rem 0.7rem;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 0.875rem;
 }
 
 .modal-info h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.75rem;
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.3px;
 }
 
 .modal-meta {
-  color: #999;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 1.1rem;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .modal-sinopsis {
-  color: #ccc;
-  line-height: 1.7;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 1.75rem;
+  font-size: 0.9rem;
 }
 
 .btn-play-modal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background: white;
-  color: black;
+  background: var(--crimson);
+  color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 700;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.3px;
 }
 
-.btn-play-modal:hover { background: #e5e5e5; }
+.btn-play-modal:hover {
+  background: var(--crimson-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--crimson-glow);
+}
 
 .proximamente {
-  color: #666;
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
   font-style: italic;
 }
 
 /* CAPÍTULOS */
+
 .seccion-capitulos {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background: #0a0a0a;
-  border-radius: 8px;
+  margin: 1.75rem 0;
+  padding: 1.25rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
 }
 
 .seccion-capitulos h3 {
   margin: 0 0 1rem;
-  font-size: 1rem;
-  color: white;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-weight: 600;
 }
 
 .lista-capitulos {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 300px;
+  max-height: 280px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
 }
 
 .item-capitulo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
   padding: 0.75rem;
-  background: #1a1a1a;
+  background: var(--bg-card);
+  border: 1px solid transparent;
   border-left: 3px solid transparent;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .item-capitulo:hover {
-  background: #252525;
-  border-left-color: #E50914;
+  background: var(--bg-elevated);
+  border-left-color: var(--crimson);
+  border-color: var(--border-subtle);
 }
 
 .item-capitulo.active {
-  background: #252525;
-  border-left-color: #E50914;
+  background: var(--bg-elevated);
+  border-left-color: var(--crimson);
+  border-color: var(--border-medium);
 }
 
 .portada-cap {
-  width: 80px;
-  height: 60px;
-  border-radius: 4px;
+  width: 84px;
+  height: 56px;
+  border-radius: 5px;
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
+  background: var(--bg-base);
 }
 
 .numero-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
   transition: background 0.2s;
+  font-family: var(--font-display);
 }
 
 .item-capitulo:hover .numero-overlay,
 .item-capitulo.active .numero-overlay {
-  background: rgba(229, 9, 20, 0.8);
-}
-
-.numero-cap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: #333;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.item-capitulo.active .numero-cap {
-  background: #E50914;
+  background: rgba(173, 0, 79, 0.75);
   color: white;
 }
 
-.info-cap {
-  flex: 1;
-}
+.info-cap { flex: 1; min-width: 0; }
 
 .titulo-cap {
-  font-size: 0.9rem;
-  color: white;
+  font-size: 0.875rem;
+  color: var(--text-primary);
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .estado-cap {
   font-size: 0.75rem;
-  color: #999;
-  margin-top: 0.25rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+.item-capitulo.active .estado-cap {
+  color: var(--crimson);
 }
 
 .modal-acciones {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
+  align-items: center;
 }
 
 /* RESPONSIVE */
+
 @media (max-width: 768px) {
-  .navegacion { padding: 1rem; }
-  .enlaces-nav { gap: 1rem; }
+  .navegacion { padding: 1rem 1.25rem; }
+  .enlaces-nav { gap: 1.25rem; }
   .tarjeta { width: 140px; }
-  .hero { padding: 6rem 1rem 2rem; }
-  .catalogo { padding: 1rem; }
+  .hero { padding: 6.5rem 1.25rem 2.5rem; }
+  .catalogo { padding: 1.5rem 1.25rem 3rem; }
+  .titulo-fila-texto { font-size: 1.1rem; }
+  .modal-info { padding: 1.25rem; }
+  .modal-info h2 { font-size: 1.5rem; }
 }
 </style>
