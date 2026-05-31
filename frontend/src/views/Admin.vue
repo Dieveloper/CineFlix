@@ -1,7 +1,7 @@
 <template>
   <div class="admin-pantalla">
 
-    <!-- SIDEBAR -->
+
     <aside class="sidebar">
       <div class="sidebar-logo">CINEFLIX</div>
       <div class="sidebar-subtitle">Panel de control</div>
@@ -24,10 +24,9 @@
       </button>
     </aside>
 
-    <!-- CONTENIDO -->
     <main class="admin-main">
 
-      <!-- ==================== PELÍCULAS ==================== -->
+      <!-- PELÍCULAS -->
       <div v-if="seccion === 'peliculas'">
         <div class="admin-header">
           <div>
@@ -81,7 +80,7 @@
         </div>
       </div>
 
-      <!-- ==================== SERIES ==================== -->
+      <!-- SERIES -->
       <div v-if="seccion === 'series'">
         <div class="admin-header">
           <div>
@@ -129,7 +128,7 @@
         </div>
       </div>
 
-      <!-- ==================== USUARIOS ==================== -->
+      <!-- USUARIOS -->
       <div v-if="seccion === 'usuarios'">
         <div class="admin-header">
           <div>
@@ -174,7 +173,7 @@
         </div>
       </div>
 
-      <!-- ==================== AVATARES ==================== -->
+      <!-- AVATARES -->
       <div v-if="seccion === 'avatares'">
         <div class="admin-header">
           <div>
@@ -212,7 +211,7 @@
 
     </main>
 
-    <!-- ==================== MODAL PELÍCULA ==================== -->
+    <!-- MODAL PELÍCULA -->
     <div class="modal-overlay" v-if="modalPeliculaVisible" @click.self="cerrarModalPelicula">
       <div class="modal-contenido">
         <div class="modal-header">
@@ -255,7 +254,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL PORTADA ==================== -->
+    <!-- MODAL PORTADA -->
     <div class="modal-overlay" v-if="modalPortadaVisible" @click.self="cerrarModalPortada">
       <div class="modal-contenido modal-archivo">
         <div class="modal-header">
@@ -296,7 +295,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL VIDEO ==================== -->
+    <!-- MODAL VIDEO -->
     <div class="modal-overlay" v-if="modalVideoVisible" @click.self="cerrarModalVideo">
       <div class="modal-contenido modal-archivo">
         <div class="modal-header">
@@ -337,7 +336,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL SERIE ==================== -->
+    <!-- MODAL SERIE -->
     <div class="modal-overlay" v-if="modalSerieVisible" @click.self="cerrarModalSerie">
       <div class="modal-contenido">
         <div class="modal-header">
@@ -380,7 +379,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL CAPÍTULOS ==================== -->
+    <!-- MODAL CAPÍTULOS -->
     <div class="modal-overlay" v-if="modalCapitulosVisible" @click.self="cerrarModalCapitulos">
       <div class="modal-contenido modal-grande">
         <div class="modal-header">
@@ -441,7 +440,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL PORTADA CAPÍTULO ==================== -->
+    <!-- MODAL PORTADA CAPÍTULO -->
     <div class="modal-overlay" v-if="modalCapituloPortadaVisible" @click.self="cerrarModalCapituloPortada">
       <div class="modal-contenido modal-archivo">
         <div class="modal-header">
@@ -482,7 +481,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL VIDEO CAPÍTULO ==================== -->
+    <!-- MODAL VIDEO CAPÍTULO -->
     <div class="modal-overlay" v-if="modalCapituloVideoVisible" @click.self="cerrarModalCapituloVideo">
       <div class="modal-contenido modal-archivo">
         <div class="modal-header">
@@ -522,7 +521,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODAL PORTADA SERIE ==================== -->
+    <!-- MODAL PORTADA SERIE -->
     <div class="modal-overlay" v-if="modalSeriePortadaVisible" @click.self="cerrarModalSeriePortada">
       <div class="modal-contenido modal-archivo">
         <div class="modal-header">
@@ -718,9 +717,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
 </script>
 
 <style scoped>
-/* =============================================
-   VARIABLES
-   ============================================= */
+/* VARIABLES */
 .admin-pantalla {
   --crimson: #AD004F;
   --crimson-bright: #D4005F;
@@ -747,9 +744,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   color: var(--text-primary);
 }
 
-/* =============================================
-   SIDEBAR
-   ============================================= */
+/* SIDEBAR */
 .sidebar {
   width: 210px;
   background: var(--bg-base);
@@ -838,9 +833,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   background: var(--crimson-subtle);
 }
 
-/* =============================================
-   MAIN
-   ============================================= */
+/* MAIN */
 .admin-main {
   flex: 1;
   padding: 2rem 2.5rem;
@@ -871,9 +864,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   letter-spacing: 0.2px;
 }
 
-/* =============================================
-   TABLA
-   ============================================= */
+/* TABLA */
 .tabla-contenedor {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -1008,9 +999,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   font-size: 0.875rem;
 }
 
-/* =============================================
-   BOTONES GLOBALES
-   ============================================= */
+/* BOTONES GLOBALES */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -1053,9 +1042,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   color: var(--text-primary);
 }
 
-/* =============================================
-   DROP ZONES
-   ============================================= */
+/* DROP ZONES */
 .drop-zone {
   border: 2px dashed var(--border-medium);
   border-radius: 10px;
@@ -1143,9 +1130,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   margin: 0;
 }
 
-/* =============================================
-   AVATARES
-   ============================================= */
+/* AVATARES */
 .avatares-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
@@ -1194,9 +1179,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   font-style: italic;
 }
 
-/* =============================================
-   MODALES
-   ============================================= */
+/* MODALES */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1260,9 +1243,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   background: var(--crimson-subtle);
 }
 
-/* =============================================
-   FORMULARIOS
-   ============================================= */
+/* FORMULARIOS */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1345,9 +1326,7 @@ async function eliminarUsuario(id) { if (!confirm('¿Seguro que quieres eliminar
   border-top: 1px solid var(--border-subtle);
 }
 
-/* =============================================
-   CARGA
-   ============================================= */
+/* CARGA */
 .indicador-carga {
   display: flex;
   align-items: center;

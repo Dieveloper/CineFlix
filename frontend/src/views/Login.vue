@@ -344,7 +344,7 @@ async function handleRegister() {
   --border-medium: rgba(173, 0, 79, 0.35);
 }
 
-/* ── HERO ─────────────────────────────────── */
+/* HERO */
 .hero-panel {
   background: linear-gradient(135deg, #1a000d 0%, #0a0005 50%, #120009 100%);
   padding: 4rem 3rem;
@@ -411,7 +411,7 @@ async function handleRegister() {
   color: var(--text-secondary);
 }
 
-/* ── AUTH PANEL ───────────────────────────── */
+/* AUTH PANEL */
 .autenticacion-panel {
   background: var(--bg-base);
   padding: 1rem;
@@ -431,7 +431,7 @@ async function handleRegister() {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
-/* ── TABS ─────────────────────────────────── */
+/* TABS */
 .autenticacion-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -467,7 +467,7 @@ async function handleRegister() {
   color: var(--text-primary);
 }
 
-/* ── FORM ─────────────────────────────────── */
+/* FORM */
 .form-panel h2 {
   margin: 0 0 1.4rem;
   font-family: 'Playfair Display', serif;
@@ -531,7 +531,7 @@ input.err {
   border-color: rgba(173, 0, 79, 0.6);
 }
 
-/* ── OJITO ────────────────────────────────── */
+/* OJITO */
 .eye-btn {
   position: absolute;
   right: 10px;
@@ -551,7 +551,7 @@ input.err {
   color: var(--text-secondary);
 }
 
-/* ── FORTALEZA ────────────────────────────── */
+/* FORTALEZA */
 .retroalimentacion-clave {
   margin-top: 0.5rem;
 }
@@ -584,7 +584,7 @@ input.err {
 .retroalimentacion-clave li.valid   { color: #5cb85c; }
 .retroalimentacion-clave li.invalid { color: var(--crimson-bright); }
 
-/* ── CONFIRMAR ────────────────────────────── */
+/* CONFIRMAR */
 .confirm-hint {
   margin-top: 0.35rem;
   font-size: 0.7rem;
@@ -606,7 +606,7 @@ input.err {
   display: inline-block;
 }
 
-/* ── BOTÓN ────────────────────────────────── */
+/* BOTÓN */
 .boton {
   width: 100%;
   border: none;
@@ -637,7 +637,7 @@ input.err {
   cursor: not-allowed;
 }
 
-/* ── MENSAJES ─────────────────────────────── */
+/* MENSAJES */
 .autenticacion-mensaje {
   margin-top: 1.2rem;
   padding: 0.75rem 1rem;
@@ -661,7 +661,7 @@ input.err {
   color: #c8f5c9;
 }
 
-/* ── RESPONSIVE ───────────────────────────── */
+/* RESPONSIVE */
 @media (min-height: 1100px) {
   .autenticacion-panel { overflow-y: hidden; align-items: center; }
   .autenticacion-content { transform: scale(0.95); }

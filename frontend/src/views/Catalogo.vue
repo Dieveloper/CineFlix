@@ -400,9 +400,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* =============================================
-   VARIABLES & BASE
-   ============================================= */
+/* VARIABLES & BASE */
 .catalogo-pantalla {
   --crimson: #AD004F;
   --crimson-bright: #D4005F;
