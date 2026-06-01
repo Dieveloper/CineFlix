@@ -27,6 +27,9 @@
             <div class="opcion-menu" @click="cambiarPerfil">
               <UserCircle :size="16" /> Cambiar perfil
             </div>
+            <div class="opcion-menu" @click="irUsuario">
+              <UserCircle :size="16" /> Mi cuenta
+            </div>
             <div class="opcion-menu" v-if="auth.usuario?.esAdmin" @click="irAdmin">
               <Settings :size="16" /> Panel de control
             </div>
@@ -382,6 +385,7 @@ function onKeydown(e) {
 }
 
 function cambiarPerfil() { menuPerfilVisible.value = false; router.push('/perfiles') }
+function irUsuario() { menuPerfilVisible.value = false; router.push('/usuario') }
 function irAdmin() { menuPerfilVisible.value = false; router.push('/admin') }
 
 onMounted(() => {

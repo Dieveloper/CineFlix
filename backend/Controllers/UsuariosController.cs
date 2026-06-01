@@ -63,6 +63,7 @@ public class UsuariosController : ControllerBase
             mensaje = "Login exitoso",
             id = usuario.Id,
             nombre = usuario.Nombre,
+            email = usuario.email,
             esAdmin = usuario.EsAdmin,
             perfiles = usuario.Perfiles
         });

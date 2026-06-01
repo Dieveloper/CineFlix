@@ -127,6 +127,10 @@
                 </button>
               </div>
 
+              <p class="requisitos-minimos">
+                Tu contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.
+              </p>
+
               <!-- INDICADOR FORTALEZA -->
               <div v-if="claveRegistro.length > 0" class="retroalimentacion-clave">
                 <div class="barra-fondo">
@@ -529,6 +533,13 @@ input.ok {
 
 input.err {
   border-color: rgba(173, 0, 79, 0.6);
+}
+
+.requisitos-minimos {
+  margin: 0.65rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 /* OJITO */
